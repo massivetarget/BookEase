@@ -1,0 +1,115 @@
+<!-- Markdown content starts here -->
+
+# BookEase: Privacy-First Bookkeeping App - Complete Project Blueprint
+
+### Overview
+This document summarizes the entire discussion on designing and building a cross-platform bookkeeping application called **BookEase**. The app focuses on **privacy-first** principles: local data storage, no cloud dependency for core operations, peer-to-peer sync, and encrypted backups. It's designed for small businesses or personal accounting, with potential for future ML integration (e.g., fraud detection).
+
+**Key Goals:**
+- Run natively on Android, iOS, Mac, and Windows.
+- Offline-first: All data local, sync only when devices connect.
+- Professional feel: Reports, charts, audit logs, dark mode.
+- No server required: Purely device-based, with optional Google Drive backups.
+
+**Project Status:** Blueprint complete. Next steps: Initialize project and start coding.
+
+## Technology Stack
+| Component | Choice | Rationale |
+|-----------|--------|-----------|
+| **Framework** | React Native + Expo + TypeScript | Cross-platform (mobile, desktop, web-view only). TypeScript for type-safety. Expo for easy builds without heavy SDKs (no Android Studio/Xcode needed during dev). |
+| **Database** | Realm | Local, object-oriented, fast (3-4x SQLite). Supports encryption, background sync, and ML data export. JSON bridging for sync/backups. |
+| **Authentication** | Expo SecureStore + Biometrics (Face/Touch ID) or 6-digit PIN | Local-only login. No server auth. |
+| **Sync Mechanism** | Peer-to-Peer via QR scan or Bluetooth | Devices connect directly; export/import encrypted JSON. Auto-merge conflicts (latest timestamp wins). |
+| **Backup/Restore** | Encrypted .zip export to Google Drive | Use Expo + Google Signin. Auto-upload optional. Restore via file picker + PIN. File naming: `backup-[UUID].zip`. |
+| **UI/UX Libraries** | Recharts/Victory (charts), react-native-pdf (exports), Expo Appearance (dark/light mode) | Professional reports (P&L, cash flow). Accessibility labels for all elements. |
+| **Other Tools** | Expo CLI for dev/builds; Expo Go app for live testing | Cloud builds via EAS (no local heavy installs). Web build for view-only access (not full edits). |
+
+**Setup Commands:**
+```bash
+npx create-react-native-app BookEase --template typescript
+cd BookEase
+expo start  # QR scan with Expo Go on phone for live preview
+```
+
+## Core Features
+1. **Login Screen**
+   - PIN or biometrics unlock.
+   - Guest mode for quick views (read-only).
+
+2. **Dashboard**
+   - Total balance, today's cash flow.
+   - Quick add transaction button.
+
+3. **Transaction Management**
+   - List view: Add/Edit/Delete entries.
+   - Fields: Amount, Date, Category, Note, Type (Debit: red icon, Credit: green icon).
+   - Realm schema example:
+     ```typescript
+     class Transaction {
+       amount: number;
+       date: Date;
+       category: string;
+       note: string;
+       type: 'debit' | 'credit';
+     }
+     ```
+
+4. **Reporting & Analytics**
+   - P&L charts (monthly/yearly) using Recharts.
+   - Date range picker.
+   - PDF export for statements (via expo-print).
+   - Future ML: Analyze patterns for fraud alerts (TensorFlow.js on Realm data).
+
+5. **Audit Log**
+   - Separate Realm model: `{ action: 'add/edit/delete', itemId: string, user: string, timestamp: Date }`.
+   - History tab to track changes.
+
+6. **Settings**
+   - Theme toggle (dark/light, auto-detect).
+   - Backup/Restore buttons.
+   - Sync device pairing.
+
+7. **Professional Touches**
+   - Logo/header: "BookEase" in bold font.
+   - Persistent balance footer.
+   - Accessibility: `accessible={true}` on all interactive elements.
+   - Multi-user: Separate PINs per user, merge on sync.
+
+## Sync & Data Flow
+- **Local Storage:** Realm handles all CRUD operations offline.
+- **Sync Process:**
+  1. Devices on same network/Bluetooth: Scan QR or enter code.
+  2. Export Realm to encrypted JSON (`realm.write(() => { /* export */ })`).
+  3. Transfer via Bluetooth/QR/email.
+  4. Import on target: Decrypt, merge into Realm (resolve conflicts by timestamp).
+- **No Auto-Sync:** Manual trigger for privacy.
+- **Web Access:** Limited to view-only via Expo web build (uses IndexedDB, not full Realm).
+
+## Backup Strategy
+- **Export:** Button triggers Realm → Encrypted ZIP (using crypto libs).
+- **Storage:** Upload to Google Drive (Expo integration: `expo install @react-native-google-signin/google-signin`).
+- **Restore:** Pick file from Drive, enter PIN, overwrite/merge Realm.
+- **Frequency:** Optional auto-backup nightly.
+- **Security:** All files PIN-encrypted; no plaintext on Drive.
+
+## Potential Challenges & Solutions
+| Challenge | Solution |
+|-----------|----------|
+| **Build for iOS/Mac** | Expo cloud builds; Mac + Xcode only for final App Store (free dev account). |
+| **Heavy Installs** | Expo avoids Android Studio (7-8GB); use Expo Go for testing. |
+| **Conflicts in Sync** | Auto-resolve: Keep latest entry; manual review option. |
+| **ML Integration** | Realm objects feed directly to TensorFlow.js; train on exported JSON. |
+| **File Size** | Clean old logs yearly; Realm is compact for bookkeeping. |
+
+## Next Steps
+1. **Initialize Project:** Run setup commands above.
+2. **First Code:** Build login screen → Dashboard skeleton.
+3. **Testing:** Expo Go on phone; add Realm schema.
+4. **Iterations:** Add transactions → Sync prototype → Backups.
+5. **Future Enhancements:** Full ML module, multi-currency, invoice scanning.
+
+**Created On:** November 25, 2025  
+**Version:** 1.0 (From conversation blueprint)  
+**Notes:** This is a living document—update as we code. No servers, full privacy. Ready to build? Start with `expo start`!
+
+> Written with [StackEdit](https://stackedit.io/).
