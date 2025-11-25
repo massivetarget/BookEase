@@ -54,3 +54,23 @@ The plan is **feasible** but the **"Technology Stack" section regarding Expo Go 
 - **Phase 1 Sync:** Manual Backup/Restore (Export JSON to file).
 - **Phase 2 Sync:** Google Drive integration.
 - **Phase 3 Sync:** Direct P2P (if really needed).
+
+## Wireframe & UI/UX Review (Added)
+
+### 1. Charting Library
+- **Plan Claim:** "Recharts (charts)".
+- **Reality:** **Recharts is designed for React Web**, not React Native. While it can work with heavy polyfilling, it is not optimized for mobile touch interactions and performance.
+- **Recommendation:** Use **`victory-native`** or **`react-native-gifted-charts`**. These are built specifically for React Native and offer the "Pro" look and animation support you want.
+
+### 2. Navigation & Structure
+- **Wireframe:** Shows a "Menu: Transactions|Reps" at the bottom.
+- **Recommendation:** Use **`expo-router`** (file-based routing) with a Bottom Tab layout. This is the modern standard for Expo apps and provides native platform feel out of the box.
+
+### 3. "Guest Mode"
+- **Wireframe:** "[Guest Mode Button]" on login.
+- **Technical Note:** Ensure "Guest Mode" clearly defines data persistence limits. If Realm is used, guest data still needs to be stored somewhere. Usually, "Guest" just means "No PIN required yet", but data is still saved locally.
+
+### 4. Visual Polish
+- **Goal:** "Professional feel... dark mode".
+- **Recommendation:** Use a UI library like **`react-native-paper`** or **`tamagui`** to get accessible, high-quality components (Inputs, Cards, Buttons) out of the box, rather than styling everything from scratch. This speeds up the "Pro" feel significantly.
+
