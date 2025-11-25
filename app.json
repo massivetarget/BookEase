@@ -8,6 +8,15 @@
     ],
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "android": {
+      "package": "com.anonymous.BookEaseApp"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5519018d-97de-4288-9bc4-f4abd11dec4b"
+      }
+    }
   }
 }

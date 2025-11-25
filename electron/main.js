@@ -6,21 +6,31 @@ function createWindow() {
         width: 1200,
         height: 800,
         webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false, // For easier Realm access initially, tighten later
+            nodeIntegration: false,
+            contextIsolation: true,
             preload: path.join(__dirname, 'preload.js'),
+            webSecurity: false, // Allow loading from localhost
         },
     });
 
-    const isDev = process.env.NODE_ENV === 'development';
+    // Try to load from dev server first, fall back to production build
+    const devServerUrl = 'http://localhost:8081';
+    const prodPath = path.join(__dirname, '../dist/index.html');
 
-    if (isDev) {
-        win.loadURL('http://localhost:8081'); // Expo Web Dev Server
+    // Try dev server first
+    win.loadURL(devServerUrl).catch(() => {
+        console.log('Dev server not available, trying production build...');
+        win.loadFile(prodPath).catch((err) => {
+            console.error('Failed to load app:', err);
+            console.log('\nPlease either:');
+            console.log('1. Start the dev server: npm run web');
+            console.log('2. Build for production: npx expo export -p web');
+        });
+    });
+
+    // Open DevTools in development
+    if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
         win.webContents.openDevTools();
-    } else {
-        // In production, load the built index.html
-        // You need to build the web app first: npx expo export -p web
-        win.loadFile(path.join(__dirname, '../dist/index.html'));
     }
 }
 
