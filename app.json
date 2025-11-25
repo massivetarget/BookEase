@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "BookEaseApp",
+    "slug": "BookEaseApp",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}

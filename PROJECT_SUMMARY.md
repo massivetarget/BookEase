@@ -1,0 +1,350 @@
+# BookEase - Privacy-First Bookkeeping Application
+
+## 📋 Project Summary
+
+**BookEase** is a cross-platform, privacy-first bookkeeping application built with React Native, Expo, and Realm. It implements full **Double-Entry Accounting** principles with local-first data storage, no cloud dependency for core operations, and optional encrypted backups.
+
+### 🎯 Key Features
+
+#### ✅ **Implemented (Phase 1)**
+- **Double-Entry Bookkeeping System**
+  - Chart of Accounts with 40+ pre-configured accounts
+  - Journal Entry management with real-time validation
+  - Automatic account balance updates
+  - Draft and Posted entry statuses
+  - Audit logging for all changes
+
+- **Complete UI Implementation**
+  - Dashboard with balance sheet summary
+  - Chart of Accounts (Full CRUD operations)
+  - Journal Entry screen with multi-line support
+  - Reports placeholder
+  - Settings placeholder
+
+- **Data Models**
+  - `Account`: Chart of Accounts with hierarchy support
+  - `JournalEntry`: Complete journal entries with status tracking
+  - `JournalLine`: Individual debit/credit lines
+  - `AuditLog`: Change tracking for compliance
+
+- **Cross-Platform Support**
+  - Mobile: Android & iOS (React Native + Expo)
+  - Desktop: Windows, macOS, Linux (Electron)
+  - Web: View-only mode (React Native Web)
+
+#### 🚧 **Planned (Future Phases)**
+- **Phase 2**: Reports & Analytics
+  - General Ledger
+  - Trial Balance
+  - Income Statement (P&L)
+  - Balance Sheet
+  - Interactive charts with Victory Native
+  - PDF export
+
+- **Phase 3**: Sync & Backup
+  - Peer-to-Peer device sync (Bluetooth/Wi-Fi)
+  - Google Drive encrypted backups
+  - Conflict resolution
+
+- **Phase 4**: Polish & Features
+  - Dark mode
+  - PIN/Biometric authentication
+  - Multi-user support
+  - Data import/export (CSV, Excel)
+
+---
+
+## 🏗️ Technical Architecture
+
+### Technology Stack
+
+| Component | Technology | Version |
+|-----------|-----------|---------|
+| **Framework** | React Native + Expo | SDK 54 |
+| **Language** | TypeScript | 5.1+ |
+| **Database** | Realm | 12.0.0 |
+| **Navigation** | expo-router | 6.0+ |
+| **Desktop** | Electron | 39.2+ |
+| **State Management** | @realm/react (hooks) | 0.6.0 |
+| **Icons** | @expo/vector-icons | Latest |
+
+### Project Structure
+
+```
+BookEase/
+├── app/                          # Expo Router screens
+│   ├── _layout.tsx              # Root layout (Realm provider)
+│   └── (tabs)/                  # Tab navigation
+│       ├── _layout.tsx          # Tabs layout
+│       ├── index.tsx            # Dashboard
+│       ├── accounts.tsx         # Chart of Accounts
+│       ├── journal.tsx          # Journal Entry
+│       ├── reports.tsx          # Reports (placeholder)
+│       └── settings.tsx         # Settings (placeholder)
+├── src/
+│   ├── models/                  # Realm data models
+│   │   ├── Account.ts
+│   │   ├── JournalEntry.ts
+│   │   ├── JournalLine.ts
+│   │   ├── AuditLog.ts
+│   │   └── index.ts
+│   └── utils/
+│       └── seedAccounts.ts      # Default Chart of Accounts
+├── electron/                    # Electron desktop app
+│   ├── main.js                 # Main process
+│   └── preload.js              # Preload script
+├── docs/                       # Planning documents
+├── assets/                     # Images, fonts
+├── package.json
+├── tsconfig.json
+├── app.json                    # Expo configuration
+└── index.js                    # Entry point
+```
+
+---
+
+## 📊 Data Model (Double-Entry Accounting)
+
+### Account Schema
+```typescript
+{
+  _id: ObjectId,
+  code: string,              // e.g., "1101"
+  name: string,              // e.g., "Cash on Hand"
+  type: 'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense',
+  subtype?: string,          // e.g., "Current Asset"
+  parentAccountId?: ObjectId,
+  balance: number,           // Cached balance
+  isActive: boolean,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### JournalEntry Schema
+```typescript
+{
+  _id: ObjectId,
+  date: Date,
+  description: string,
+  reference?: string,        // Invoice #, Receipt #
+  status: 'Draft' | 'Posted',
+  lines: List<JournalLine>,
+  createdAt: Date,
+  updatedAt: Date,
+  createdBy?: string
+}
+```
+
+### JournalLine Schema
+```typescript
+{
+  _id: ObjectId,
+  accountId: ObjectId,
+  debit: number,            // 0 if credit
+  credit: number,           // 0 if debit
+  description?: string,
+  createdAt: Date
+}
+```
+
+### Accounting Rules Implemented
+
+1. **Double-Entry Validation**: `sum(debits) === sum(credits)` enforced before posting
+2. **Account Balance Updates**:
+   - **Assets & Expenses**: Debit increases, Credit decreases
+   - **Liabilities, Equity & Income**: Credit increases, Debit decreases
+3. **Minimum Requirements**: Each entry must have at least 2 lines
+4. **Status Control**: Only "Posted" entries affect account balances
+
+---
+
+## 🎨 UI/UX Features
+
+### Dashboard
+- Real-time balance sheet summary
+- Total Assets, Liabilities, Equity calculation
+- Net Worth display with color coding
+- Quick statistics (account counts, entry counts)
+- Professional card-based layout
+
+### Chart of Accounts
+- **Search**: Filter by code or name
+- **Filter**: By account type (Asset, Liability, etc.)
+- **CRUD Operations**: Add, Edit, Toggle Active/Inactive
+- **Color Coding**: 
+  - 🟢 Green: Assets
+  - 🔴 Red: Liabilities
+  - 🟣 Purple: Equity
+  - 🔵 Blue: Income
+  - 🟠 Orange: Expenses
+- **Real-time Balance**: Shows current balance for each account
+
+### Journal Entry
+- **Multi-line Entry**: Add/remove lines dynamically
+- **Account Picker**: Searchable dropdown for account selection
+- **Real-time Validation**: 
+  - Green checkmark when balanced
+  - Red alert when unbalanced
+  - Live debit/credit totals
+- **Dual Save Options**:
+  - Save as Draft (no balance update)
+  - Post Entry (updates account balances)
+- **Entry Details**: View posted/draft entries with full line breakdown
+
+---
+
+## 🔒 Privacy & Security Features
+
+### Current Implementation
+- ✅ **Local-First**: All data stored on device using Realm
+- ✅ **No Cloud Dependency**: Core operations work 100% offline
+- ✅ **Encrypted Database**: Realm supports encryption (ready to enable)
+
+### Planned Features
+- 🔜 PIN/Biometric authentication
+- 🔜 Encrypted backups to Google Drive
+- 🔜 P2P sync with encryption
+- 🔜 Multi-user with separate PINs
+
+---
+
+## 📦 Default Chart of Accounts
+
+The app auto-seeds with 40+ accounts on first run:
+
+| Code Range | Category | Examples |
+|------------|----------|----------|
+| **1000-1999** | Assets | Cash, Bank, Receivables, Inventory, Equipment |
+| **2000-2999** | Liabilities | Payables, Credit Cards, Loans, Sales Tax |
+| **3000-3999** | Equity | Owner's Equity, Retained Earnings |
+| **4000-4999** | Income | Sales Revenue, Service Revenue |
+| **5000-5999** | Expenses | COGS, Rent, Salaries, Utilities, Marketing |
+
+Users can add custom accounts as needed.
+
+---
+
+## 🚀 Performance & Scalability
+
+- **Database**: Realm is 3-4x faster than SQLite
+- **Offline-First**: No network latency for core operations
+- **Efficient Queries**: Realm's lazy loading and live queries
+- **Compact Storage**: Optimized for bookkeeping data
+- **Scalability**: Suitable for small to medium businesses
+
+---
+
+## 🛠️ Development Workflow
+
+### Custom Dev Client Required
+⚠️ **Important**: This app uses Realm and native modules, so it **cannot** run in standard Expo Go.
+
+You must use:
+1. **Expo Dev Client** (custom build)
+2. **EAS Build** (cloud builds)
+3. **Local builds** with `expo run:android` or `expo run:ios`
+
+### Supported Platforms
+- ✅ Android (via Expo Dev Client or EAS)
+- ✅ iOS (via Expo Dev Client or EAS, requires Mac for local builds)
+- ✅ Web (limited - view only, no Realm)
+- ✅ Windows Desktop (via Electron)
+- ✅ macOS Desktop (via Electron)
+- ✅ Linux Desktop (via Electron)
+
+---
+
+## 📝 Code Quality
+
+### TypeScript
+- Full TypeScript implementation
+- Type-safe Realm models
+- Strict mode enabled
+
+### Architecture Patterns
+- **Component-based**: Reusable UI components
+- **Hooks-based**: Using @realm/react hooks
+- **File-based routing**: expo-router for navigation
+- **Separation of Concerns**: Models, Utils, UI separated
+
+---
+
+## 🎯 Use Cases
+
+### Target Users
+- Small business owners
+- Freelancers
+- Personal finance tracking
+- Accountants needing offline tools
+- Privacy-conscious users
+
+### Example Workflows
+
+1. **Recording a Sale**:
+   - Create journal entry
+   - Debit: Cash (Asset)
+   - Credit: Sales Revenue (Income)
+   - Post entry → Cash balance increases
+
+2. **Paying Rent**:
+   - Create journal entry
+   - Debit: Rent Expense (Expense)
+   - Credit: Cash (Asset)
+   - Post entry → Cash decreases, Expense increases
+
+3. **Purchasing Equipment**:
+   - Create journal entry
+   - Debit: Equipment (Asset)
+   - Credit: Cash (Asset) or Loan Payable (Liability)
+   - Post entry → Asset composition changes
+
+---
+
+## 🔮 Future Enhancements
+
+### Short-term (Phase 2)
+- General Ledger with filtering
+- Trial Balance report
+- Income Statement (P&L)
+- Balance Sheet
+- Charts and visualizations
+- PDF export
+
+### Medium-term (Phase 3)
+- P2P device sync
+- Google Drive integration
+- Conflict resolution
+- Data import/export (CSV, Excel)
+
+### Long-term (Phase 4)
+- Multi-currency support
+- Invoice generation
+- Receipt scanning (OCR)
+- ML-based fraud detection
+- Tax report generation
+- Multi-company support
+
+---
+
+## 📄 License
+
+Apache-2.0
+
+---
+
+## 👥 Contributors
+
+Built with Antigravity AI Agent
+
+---
+
+## 📞 Support
+
+For issues or questions, refer to the `INSTRUCTIONS.md` file for setup and troubleshooting.
+
+---
+
+**Last Updated**: November 26, 2025  
+**Version**: 1.0.0 (Phase 1 Complete)  
+**Status**: ✅ Production Ready for Core Features
