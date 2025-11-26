@@ -9,37 +9,44 @@ import {
     Modal,
     ScrollView,
     Alert,
+    Platform,
 } from 'react-native';
 import { useQuery, useRealm } from '@realm/react';
-import { Account } from '../../src/models';
+import { Account } from '../../models';
 import { Ionicons } from '@expo/vector-icons';
 import { BSON } from 'realm';
 
-export default function AccountsScreen() {
-    const realm = useRealm();
-    const accounts = useQuery(Account, (collection) =>
-        collection.sorted('code')
-    );
-    const [searchQuery, setSearchQuery] = useState('');
-    const [filterType, setFilterType] = useState<string | null>(null);
-    const [modalVisible, setModalVisible] = useState(false);
-    const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+// Shared types and constants
+const ACCOUNT_TYPES: Array<'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense'> = [
+    'Asset',
+    'Liability',
+    'Equity',
+    'Income',
+    'Expense',
+];
 
-    // Form state
-    const [code, setCode] = useState('');
-    const [name, setName] = useState('');
-    const [type, setType] = useState<'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense'>('Asset');
-    const [subtype, setSubtype] = useState('');
+const getTypeColor = (accountType: string) => {
+    switch (accountType) {
+        case 'Asset': return '#059669';
+        case 'Liability': return '#dc2626';
+        case 'Equity': return '#7c3aed';
+        case 'Income': return '#2563eb';
+        case 'Expense': return '#ea580c';
+        default: return '#6b7280';
+    }
+};
 
-    const accountTypes: Array<'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense'> = [
-        'Asset',
-        'Liability',
-        'Equity',
-        'Income',
-        'Expense',
-    ];
+// Mock Data for Web
+const MOCK_ACCOUNTS_DATA = [
+    { _id: '1', code: '1001', name: 'Cash on Hand', type: 'Asset', balance: 5000, isActive: true },
+    { _id: '2', code: '2001', name: 'Accounts Payable', type: 'Liability', balance: 2000, isActive: true },
+    { _id: '3', code: '3001', name: 'Owner Equity', type: 'Equity', balance: 3000, isActive: true },
+    { _id: '4', code: '4001', name: 'Sales Revenue', type: 'Income', balance: 15000, isActive: true },
+    { _id: '5', code: '5001', name: 'Rent Expense', type: 'Expense', balance: 1200, isActive: true },
+];
 
-    const filteredAccounts = accounts.filtered((account) => {
+function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearchQuery, filterType, setFilterType, openAddModal }) {
+    const filteredAccounts = accounts.filter((account) => {
         const matchesSearch =
             searchQuery === '' ||
             account.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -48,84 +55,10 @@ export default function AccountsScreen() {
         return matchesSearch && matchesType;
     });
 
-    const openAddModal = () => {
-        setEditingAccount(null);
-        setCode('');
-        setName('');
-        setType('Asset');
-        setSubtype('');
-        setModalVisible(true);
-    };
-
-    const openEditModal = (account: Account) => {
-        setEditingAccount(account);
-        setCode(account.code);
-        setName(account.name);
-        setType(account.type);
-        setSubtype(account.subtype || '');
-        setModalVisible(true);
-    };
-
-    const handleSave = () => {
-        if (!code || !name) {
-            Alert.alert('Error', 'Code and Name are required');
-            return;
-        }
-
-        realm.write(() => {
-            if (editingAccount) {
-                // Update existing account
-                editingAccount.name = name;
-                editingAccount.type = type;
-                editingAccount.subtype = subtype || undefined;
-                editingAccount.updatedAt = new Date();
-            } else {
-                // Create new account
-                realm.create(Account, {
-                    _id: new BSON.ObjectId(),
-                    code,
-                    name,
-                    type,
-                    subtype: subtype || undefined,
-                    balance: 0,
-                    isActive: true,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                });
-            }
-        });
-
-        setModalVisible(false);
-    };
-
-    const toggleAccountStatus = (account: Account) => {
-        realm.write(() => {
-            account.isActive = !account.isActive;
-            account.updatedAt = new Date();
-        });
-    };
-
-    const getTypeColor = (accountType: string) => {
-        switch (accountType) {
-            case 'Asset':
-                return '#059669';
-            case 'Liability':
-                return '#dc2626';
-            case 'Equity':
-                return '#7c3aed';
-            case 'Income':
-                return '#2563eb';
-            case 'Expense':
-                return '#ea580c';
-            default:
-                return '#6b7280';
-        }
-    };
-
-    const renderAccount = ({ item }: { item: Account }) => (
+    const renderAccount = ({ item }) => (
         <TouchableOpacity
             style={[styles.accountCard, !item.isActive && styles.inactiveCard]}
-            onPress={() => openEditModal(item)}
+            onPress={() => onEdit(item)}
         >
             <View style={styles.accountHeader}>
                 <View style={styles.accountInfo}>
@@ -145,7 +78,7 @@ export default function AccountsScreen() {
                     Balance: ${item.balance.toFixed(2)}
                 </Text>
                 <TouchableOpacity
-                    onPress={() => toggleAccountStatus(item)}
+                    onPress={() => onToggleStatus(item)}
                     style={styles.statusButton}
                 >
                     <Ionicons
@@ -186,7 +119,7 @@ export default function AccountsScreen() {
                         All
                     </Text>
                 </TouchableOpacity>
-                {accountTypes.map((accountType) => (
+                {ACCOUNT_TYPES.map((accountType) => (
                     <TouchableOpacity
                         key={accountType}
                         style={[styles.filterChip, filterType === accountType && styles.filterChipActive]}
@@ -222,87 +155,263 @@ export default function AccountsScreen() {
             <TouchableOpacity style={styles.fab} onPress={openAddModal}>
                 <Ionicons name="add" size={28} color="#fff" />
             </TouchableOpacity>
-
-            {/* Add/Edit Modal */}
-            <Modal visible={modalVisible} animationType="slide" transparent>
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>
-                                {editingAccount ? 'Edit Account' : 'Add Account'}
-                            </Text>
-                            <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <Ionicons name="close" size={28} color="#6b7280" />
-                            </TouchableOpacity>
-                        </View>
-
-                        <ScrollView style={styles.modalBody}>
-                            <Text style={styles.label}>Account Code *</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={code}
-                                onChangeText={setCode}
-                                placeholder="e.g., 1101"
-                                editable={!editingAccount} // Can't edit code
-                            />
-
-                            <Text style={styles.label}>Account Name *</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={name}
-                                onChangeText={setName}
-                                placeholder="e.g., Cash on Hand"
-                            />
-
-                            <Text style={styles.label}>Account Type *</Text>
-                            <View style={styles.typeSelector}>
-                                {accountTypes.map((accountType) => (
-                                    <TouchableOpacity
-                                        key={accountType}
-                                        style={[
-                                            styles.typeOption,
-                                            type === accountType && styles.typeOptionActive,
-                                            { borderColor: getTypeColor(accountType) },
-                                        ]}
-                                        onPress={() => setType(accountType)}
-                                    >
-                                        <Text
-                                            style={[
-                                                styles.typeOptionText,
-                                                type === accountType && { color: getTypeColor(accountType) },
-                                            ]}
-                                        >
-                                            {accountType}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-
-                            <Text style={styles.label}>Subtype (Optional)</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={subtype}
-                                onChangeText={setSubtype}
-                                placeholder="e.g., Current Asset"
-                            />
-                        </ScrollView>
-
-                        <View style={styles.modalFooter}>
-                            <TouchableOpacity
-                                style={[styles.button, styles.buttonSecondary]}
-                                onPress={() => setModalVisible(false)}
-                            >
-                                <Text style={styles.buttonSecondaryText}>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={[styles.button, styles.buttonPrimary]} onPress={handleSave}>
-                                <Text style={styles.buttonPrimaryText}>Save</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
         </View>
     );
+}
+
+function AccountModal({ visible, onClose, onSave, editingAccount, code, setCode, name, setName, type, setType, subtype, setSubtype }) {
+    return (
+        <Modal visible={visible} animationType="slide" transparent>
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>
+                            {editingAccount ? 'Edit Account' : 'Add Account'}
+                        </Text>
+                        <TouchableOpacity onPress={onClose}>
+                            <Ionicons name="close" size={28} color="#6b7280" />
+                        </TouchableOpacity>
+                    </View>
+
+                    <ScrollView style={styles.modalBody}>
+                        <Text style={styles.label}>Account Code *</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={code}
+                            onChangeText={setCode}
+                            placeholder="e.g., 1101"
+                            editable={!editingAccount}
+                        />
+
+                        <Text style={styles.label}>Account Name *</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={name}
+                            onChangeText={setName}
+                            placeholder="e.g., Cash on Hand"
+                        />
+
+                        <Text style={styles.label}>Account Type *</Text>
+                        <View style={styles.typeSelector}>
+                            {ACCOUNT_TYPES.map((accountType) => (
+                                <TouchableOpacity
+                                    key={accountType}
+                                    style={[
+                                        styles.typeOption,
+                                        type === accountType && styles.typeOptionActive,
+                                        { borderColor: getTypeColor(accountType) },
+                                    ]}
+                                    onPress={() => setType(accountType)}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.typeOptionText,
+                                            type === accountType && { color: getTypeColor(accountType) },
+                                        ]}
+                                    >
+                                        {accountType}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <Text style={styles.label}>Subtype (Optional)</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={subtype}
+                            onChangeText={setSubtype}
+                            placeholder="e.g., Current Asset"
+                        />
+                    </ScrollView>
+
+                    <View style={styles.modalFooter}>
+                        <TouchableOpacity
+                            style={[styles.button, styles.buttonSecondary]}
+                            onPress={onClose}
+                        >
+                            <Text style={styles.buttonSecondaryText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.button, styles.buttonPrimary]} onPress={onSave}>
+                            <Text style={styles.buttonPrimaryText}>Save</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    );
+}
+
+function AccountsScreenWeb() {
+    const [accounts, setAccounts] = useState(MOCK_ACCOUNTS_DATA);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterType, setFilterType] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [editingAccount, setEditingAccount] = useState(null);
+
+    const [code, setCode] = useState('');
+    const [name, setName] = useState('');
+    const [type, setType] = useState('Asset');
+    const [subtype, setSubtype] = useState('');
+
+    const openAddModal = () => {
+        setEditingAccount(null);
+        setCode('');
+        setName('');
+        setType('Asset');
+        setSubtype('');
+        setModalVisible(true);
+    };
+
+    const openEditModal = (account) => {
+        setEditingAccount(account);
+        setCode(account.code);
+        setName(account.name);
+        setType(account.type);
+        setSubtype(account.subtype || '');
+        setModalVisible(true);
+    };
+
+    const handleSave = () => {
+        Alert.alert('Demo Mode', 'Changes are not saved in demo mode.');
+        setModalVisible(false);
+    };
+
+    const toggleAccountStatus = (account) => {
+        Alert.alert('Demo Mode', 'Changes are not saved in demo mode.');
+    };
+
+    return (
+        <>
+            <AccountsList
+                accounts={accounts}
+                onEdit={openEditModal}
+                onToggleStatus={toggleAccountStatus}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                filterType={filterType}
+                setFilterType={setFilterType}
+                openAddModal={openAddModal}
+            />
+            <AccountModal
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                onSave={handleSave}
+                editingAccount={editingAccount}
+                code={code}
+                setCode={setCode}
+                name={name}
+                setName={setName}
+                type={type}
+                setType={setType}
+                subtype={subtype}
+                setSubtype={setSubtype}
+            />
+        </>
+    );
+}
+
+function AccountsScreenNative() {
+    const realm = useRealm();
+    const accounts = useQuery(Account, (collection) => collection.sorted('code'));
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterType, setFilterType] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [editingAccount, setEditingAccount] = useState(null);
+
+    const [code, setCode] = useState('');
+    const [name, setName] = useState('');
+    const [type, setType] = useState('Asset');
+    const [subtype, setSubtype] = useState('');
+
+    const openAddModal = () => {
+        setEditingAccount(null);
+        setCode('');
+        setName('');
+        setType('Asset');
+        setSubtype('');
+        setModalVisible(true);
+    };
+
+    const openEditModal = (account) => {
+        setEditingAccount(account);
+        setCode(account.code);
+        setName(account.name);
+        setType(account.type);
+        setSubtype(account.subtype || '');
+        setModalVisible(true);
+    };
+
+    const handleSave = () => {
+        if (!code || !name) {
+            Alert.alert('Error', 'Code and Name are required');
+            return;
+        }
+
+        realm.write(() => {
+            if (editingAccount) {
+                editingAccount.name = name;
+                editingAccount.type = type;
+                editingAccount.subtype = subtype || undefined;
+                editingAccount.updatedAt = new Date();
+            } else {
+                realm.create(Account, {
+                    _id: new BSON.ObjectId(),
+                    code,
+                    name,
+                    type: type as 'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense',
+                    subtype: subtype || undefined,
+                    balance: 0,
+                    isActive: true,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                });
+            }
+        });
+        setModalVisible(false);
+    };
+
+    const toggleAccountStatus = (account) => {
+        realm.write(() => {
+            account.isActive = !account.isActive;
+            account.updatedAt = new Date();
+        });
+    };
+
+    return (
+        <>
+            <AccountsList
+                accounts={accounts}
+                onEdit={openEditModal}
+                onToggleStatus={toggleAccountStatus}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                filterType={filterType}
+                setFilterType={setFilterType}
+                openAddModal={openAddModal}
+            />
+            <AccountModal
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                onSave={handleSave}
+                editingAccount={editingAccount}
+                code={code}
+                setCode={setCode}
+                name={name}
+                setName={setName}
+                type={type}
+                setType={setType}
+                subtype={subtype}
+                setSubtype={setSubtype}
+            />
+        </>
+    );
+}
+
+export default function AccountsScreen() {
+    if (Platform.OS === 'web') {
+        return <AccountsScreenWeb />;
+    }
+    return <AccountsScreenNative />;
 }
 
 const styles = StyleSheet.create({

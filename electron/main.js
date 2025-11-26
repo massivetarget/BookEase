@@ -14,19 +14,30 @@ function createWindow() {
     });
 
     // Try to load from dev server first, fall back to production build
-    const devServerUrl = 'http://localhost:8081';
+    const devServerUrls = ['http://localhost:19006', 'http://localhost:8082', 'http://localhost:8081'];
     const prodPath = path.join(__dirname, '../dist/index.html');
 
-    // Try dev server first
-    win.loadURL(devServerUrl).catch(() => {
-        console.log('Dev server not available, trying production build...');
+    const loadApp = async () => {
+        for (const url of devServerUrls) {
+            try {
+                await win.loadURL(url);
+                console.log(`Loaded from ${url}`);
+                return;
+            } catch (e) {
+                console.log(`Failed to load from ${url}`);
+            }
+        }
+
+        console.log('Dev servers not available, trying production build...');
         win.loadFile(prodPath).catch((err) => {
             console.error('Failed to load app:', err);
             console.log('\nPlease either:');
             console.log('1. Start the dev server: npm run web');
             console.log('2. Build for production: npx expo export -p web');
         });
-    });
+    };
+
+    loadApp();
 
     // Open DevTools in development
     if (process.env.NODE_ENV === 'development' || !app.isPackaged) {

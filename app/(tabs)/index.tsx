@@ -1,32 +1,37 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useQuery } from '@realm/react';
-import { Account, JournalEntry } from '../../src/models';
+import { Account, JournalEntry } from '../../models';
 
-export default function DashboardScreen() {
-    const accounts = useQuery(Account);
-    const journalEntries = useQuery(JournalEntry);
+// Mock data for Web
+const MOCK_ACCOUNTS = [
+    { balance: 5000, type: 'Asset', isActive: true },
+    { balance: 2000, type: 'Liability', isActive: true },
+    { balance: 3000, type: 'Equity', isActive: true },
+];
+const MOCK_ENTRIES = [{}, {}, {}]; // Just for length count
 
+function DashboardContent({ accounts, journalEntries }) {
     // Calculate total assets, liabilities, equity
     const totalAssets = accounts
-        .filtered('type == "Asset" AND isActive == true')
+        .filter(acc => acc.type === 'Asset' && acc.isActive === true)
         .reduce((sum, acc) => sum + acc.balance, 0);
 
     const totalLiabilities = accounts
-        .filtered('type == "Liability" AND isActive == true')
+        .filter(acc => acc.type === 'Liability' && acc.isActive === true)
         .reduce((sum, acc) => sum + acc.balance, 0);
 
     const totalEquity = accounts
-        .filtered('type == "Equity" AND isActive == true')
+        .filter(acc => acc.type === 'Equity' && acc.isActive === true)
         .reduce((sum, acc) => sum + acc.balance, 0);
 
-    const postedEntries = journalEntries.filtered('status == "Posted"');
+    const postedEntriesCount = journalEntries.filter(e => e.status === 'Posted').length;
 
     return (
         <ScrollView style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.title}>BookEase Dashboard</Text>
-                <Text style={styles.subtitle}>Privacy-First Bookkeeping</Text>
+                <Text style={styles.subtitle}>Privacy-First Bookkeeping {Platform.OS === 'web' ? '(Web Demo)' : ''}</Text>
             </View>
 
             <View style={styles.card}>
@@ -66,7 +71,7 @@ export default function DashboardScreen() {
                 <View style={styles.row}>
                     <Text style={styles.label}>Active Accounts:</Text>
                     <Text style={styles.value}>
-                        {accounts.filtered('isActive == true').length}
+                        {accounts.filter(a => a.isActive === true).length}
                     </Text>
                 </View>
                 <View style={styles.row}>
@@ -75,7 +80,7 @@ export default function DashboardScreen() {
                 </View>
                 <View style={styles.row}>
                     <Text style={styles.label}>Posted Entries:</Text>
-                    <Text style={styles.value}>{postedEntries.length}</Text>
+                    <Text style={styles.value}>{postedEntriesCount}</Text>
                 </View>
             </View>
 
@@ -86,6 +91,17 @@ export default function DashboardScreen() {
             </View>
         </ScrollView>
     );
+}
+
+export default function DashboardScreen() {
+    if (Platform.OS === 'web') {
+        return <DashboardContent accounts={MOCK_ACCOUNTS} journalEntries={MOCK_ENTRIES} />;
+    }
+
+    const accounts = useQuery(Account);
+    const journalEntries = useQuery(JournalEntry);
+
+    return <DashboardContent accounts={accounts} journalEntries={journalEntries} />;
 }
 
 const styles = StyleSheet.create({

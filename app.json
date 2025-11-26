@@ -7,13 +7,21 @@
       "**/*"
     ],
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-font"
     ],
     "android": {
-      "package": "com.anonymous.BookEaseApp"
+      "package": "com.anonymous.BookEaseApp",
+      "targetSdkVersion": 34
+    },
+    "scheme": "bookeaseapp",
+    "web": {
+      "bundler": "webpack"
     },
     "extra": {
-      "router": {},
+      "router": {
+        "origin": false
+      },
       "eas": {
         "projectId": "5519018d-97de-4288-9bc4-f4abd11dec4b"
       }
