@@ -39,7 +39,11 @@ export class SQLiteJournalRepository implements IJournalRepository {
                 status: entry.status,
                 createdAt: new Date(entry.createdAt),
                 updatedAt: new Date(entry.updatedAt),
-                lines: lines.map(l => ({ ...l, _id: (l as any).id })), // Map id to _id
+                lines: lines.map(l => ({
+                    ...l,
+                    _id: (l as any).id,
+                    createdAt: new Date(l.createdAt)
+                })), // Map id to _id and string to Date
                 getTotalAmount: () => lines.reduce((sum, l) => sum + (l.debit || 0), 0)
             });
         }
@@ -61,7 +65,11 @@ export class SQLiteJournalRepository implements IJournalRepository {
             status: entry.status,
             createdAt: new Date(entry.createdAt),
             updatedAt: new Date(entry.updatedAt),
-            lines: lines.map(l => ({ ...l, _id: (l as any).id })),
+            lines: lines.map(l => ({
+                ...l,
+                _id: (l as any).id,
+                createdAt: new Date(l.createdAt)
+            })),
             getTotalAmount: () => lines.reduce((sum, l) => sum + (l.debit || 0), 0)
         };
     }

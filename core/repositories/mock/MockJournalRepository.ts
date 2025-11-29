@@ -11,8 +11,8 @@ const MOCK_JOURNAL_ENTRIES: JournalEntry[] = [
         reference: 'REF-001',
         status: 'Posted',
         lines: [
-            { _id: uuidv4(), accountId: uuidv4(), debit: 5000, credit: 0, description: 'Cash' } as any,
-            { _id: uuidv4(), accountId: uuidv4(), debit: 0, credit: 5000, description: 'Equity' } as any,
+            { _id: uuidv4(), accountId: uuidv4(), debit: 5000, credit: 0, description: 'Cash', createdAt: new Date() } as any,
+            { _id: uuidv4(), accountId: uuidv4(), debit: 0, credit: 5000, description: 'Equity', createdAt: new Date() } as any,
         ],
         createdAt: new Date(),
         updatedAt: new Date(),

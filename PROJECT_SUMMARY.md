@@ -2,7 +2,7 @@
 
 ## 📋 Project Summary
 
-**BookEase** is a cross-platform, privacy-first bookkeeping application built with React Native, Expo, and Realm. It implements full **Double-Entry Accounting** principles with local-first data storage, no cloud dependency for core operations, and optional encrypted backups.
+**BookEase** is a cross-platform, privacy-first bookkeeping application built with React Native, Expo, and **SQLite**. It implements full **Double-Entry Accounting** principles with local-first data storage, no cloud dependency for core operations, and optional encrypted backups.
 
 ### 🎯 Key Features
 
@@ -30,7 +30,7 @@
 - **Cross-Platform Support**
   - Mobile: Android & iOS (React Native + Expo)
   - Desktop: Windows, macOS, Linux (Electron)
-  - Web: View-only mode (React Native Web)
+  - Web: View-only mode (React Native Web) with Mock Data
 
 #### 🚧 **Planned (Future Phases)**
 - **Phase 2**: Reports & Analytics
@@ -42,8 +42,8 @@
   - PDF export
 
 - **Phase 3**: Sync & Backup
-  - Peer-to-Peer device sync (Bluetooth/Wi-Fi)
-  - Google Drive encrypted backups
+  - 🚧 Peer-to-Peer device sync (Bluetooth/Wi-Fi)
+  - ✅ Google Drive encrypted backups (Implemented, pending config)
   - Conflict resolution
 
 - **Phase 4**: Polish & Features
@@ -62,10 +62,10 @@
 |-----------|-----------|---------|
 | **Framework** | React Native + Expo | SDK 54 |
 | **Language** | TypeScript | 5.1+ |
-| **Database** | Realm | 12.0.0 |
+| **Database** | expo-sqlite | 16.0+ |
 | **Navigation** | expo-router | 6.0+ |
 | **Desktop** | Electron | 39.2+ |
-| **State Management** | @realm/react (hooks) | 0.6.0 |
+| **State Management** | React Context + Hooks | - |
 | **Icons** | @expo/vector-icons | Latest |
 
 ### Project Structure
@@ -73,7 +73,7 @@
 ```
 BookEase/
 ├── app/                          # Expo Router screens
-│   ├── _layout.tsx              # Root layout (Realm provider)
+│   ├── _layout.tsx              # Root layout (Service Provider)
 │   └── (tabs)/                  # Tab navigation
 │       ├── _layout.tsx          # Tabs layout
 │       ├── index.tsx            # Dashboard
@@ -81,15 +81,16 @@ BookEase/
 │       ├── journal.tsx          # Journal Entry
 │       ├── reports.tsx          # Reports (placeholder)
 │       └── settings.tsx         # Settings (placeholder)
-├── src/
-│   ├── models/                  # Realm data models
-│   │   ├── Account.ts
-│   │   ├── JournalEntry.ts
-│   │   ├── JournalLine.ts
-│   │   ├── AuditLog.ts
-│   │   └── index.ts
-│   └── utils/
-│       └── seedAccounts.ts      # Default Chart of Accounts
+├── core/                         # Core Business Logic
+│   ├── database/                # Database connection & setup
+│   ├── interfaces/              # Repository Interfaces
+│   ├── repositories/            # Data Access Layer
+│   │   ├── sqlite/              # Native SQLite implementation
+│   │   └── mock/                # Web Mock implementation
+│   └── services/                # Service Context & Logic
+├── models/                       # TypeScript Data Models
+│   ├── index.ts
+│   └── ...
 ├── electron/                    # Electron desktop app
 │   ├── main.js                 # Main process
 │   └── preload.js              # Preload script
@@ -105,42 +106,40 @@ BookEase/
 
 ## 📊 Data Model (Double-Entry Accounting)
 
-### Account Schema
+### Account Schema (SQLite Table: `accounts`)
 ```typescript
 {
-  _id: ObjectId,
+  id: string,                // UUID
   code: string,              // e.g., "1101"
   name: string,              // e.g., "Cash on Hand"
   type: 'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense',
   subtype?: string,          // e.g., "Current Asset"
-  parentAccountId?: ObjectId,
   balance: number,           // Cached balance
-  isActive: boolean,
+  isActive: boolean,         // 0 or 1 in DB
+  createdAt: Date,           // ISO String in DB
+  updatedAt: Date            // ISO String in DB
+}
+```
+
+### JournalEntry Schema (SQLite Table: `journal_entries`)
+```typescript
+{
+  id: string,                // UUID
+  date: Date,                // ISO String in DB
+  description: string,
+  reference?: string,        // Invoice #, Receipt #
+  status: 'Draft' | 'Posted',
   createdAt: Date,
   updatedAt: Date
 }
 ```
 
-### JournalEntry Schema
+### JournalLine Schema (SQLite Table: `journal_lines`)
 ```typescript
 {
-  _id: ObjectId,
-  date: Date,
-  description: string,
-  reference?: string,        // Invoice #, Receipt #
-  status: 'Draft' | 'Posted',
-  lines: List<JournalLine>,
-  createdAt: Date,
-  updatedAt: Date,
-  createdBy?: string
-}
-```
-
-### JournalLine Schema
-```typescript
-{
-  _id: ObjectId,
-  accountId: ObjectId,
+  id: string,                // UUID
+  entryId: string,           // FK to journal_entries
+  accountId: string,         // FK to accounts
   debit: number,            // 0 if credit
   credit: number,           // 0 if debit
   description?: string,
@@ -197,9 +196,9 @@ BookEase/
 ## 🔒 Privacy & Security Features
 
 ### Current Implementation
-- ✅ **Local-First**: All data stored on device using Realm
+- ✅ **Local-First**: All data stored on device using SQLite
 - ✅ **No Cloud Dependency**: Core operations work 100% offline
-- ✅ **Encrypted Database**: Realm supports encryption (ready to enable)
+- ✅ **Clean Architecture**: Repository pattern allows for easy security upgrades
 
 ### Planned Features
 - 🔜 PIN/Biometric authentication
@@ -227,18 +226,17 @@ Users can add custom accounts as needed.
 
 ## 🚀 Performance & Scalability
 
-- **Database**: Realm is 3-4x faster than SQLite
-- **Offline-First**: No network latency for core operations
-- **Efficient Queries**: Realm's lazy loading and live queries
-- **Compact Storage**: Optimized for bookkeeping data
-- **Scalability**: Suitable for small to medium businesses
+- **Database**: SQLite is robust, standard, and highly performant for local data.
+- **Offline-First**: No network latency for core operations.
+- **Optimized Queries**: Direct SQL queries for efficient data retrieval.
+- **Scalability**: Suitable for small to medium businesses.
 
 ---
 
 ## 🛠️ Development Workflow
 
 ### Custom Dev Client Required
-⚠️ **Important**: This app uses Realm and native modules, so it **cannot** run in standard Expo Go.
+⚠️ **Important**: This app uses `expo-sqlite` (native module), so it **cannot** run in standard Expo Go.
 
 You must use:
 1. **Expo Dev Client** (custom build)
@@ -248,7 +246,7 @@ You must use:
 ### Supported Platforms
 - ✅ Android (via Expo Dev Client or EAS)
 - ✅ iOS (via Expo Dev Client or EAS, requires Mac for local builds)
-- ✅ Web (limited - view only, no Realm)
+- ✅ Web (View-only mode with Mock Data)
 - ✅ Windows Desktop (via Electron)
 - ✅ macOS Desktop (via Electron)
 - ✅ Linux Desktop (via Electron)
@@ -259,14 +257,15 @@ You must use:
 
 ### TypeScript
 - Full TypeScript implementation
-- Type-safe Realm models
+- Type-safe Interfaces
 - Strict mode enabled
 
 ### Architecture Patterns
+- **Clean Architecture**: Separation of concerns (UI, Core, Data)
+- **Repository Pattern**: Abstracted data access
+- **Service Provider**: Dependency injection for services
 - **Component-based**: Reusable UI components
-- **Hooks-based**: Using @realm/react hooks
 - **File-based routing**: expo-router for navigation
-- **Separation of Concerns**: Models, Utils, UI separated
 
 ---
 
@@ -345,6 +344,6 @@ For issues or questions, refer to the `INSTRUCTIONS.md` file for setup and troub
 
 ---
 
-**Last Updated**: November 26, 2025  
-**Version**: 1.0.0 (Phase 1 Complete)  
+**Last Updated**: November 29, 2025  
+**Version**: 1.1.0 (Phase 1 Complete - SQLite Migration)  
 **Status**: ✅ Production Ready for Core Features

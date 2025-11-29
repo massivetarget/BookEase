@@ -5,8 +5,9 @@
 2. [Installation](#installation)
 3. [Running the App](#running-the-app)
 4. [Building for Production](#building-for-production)
-5. [Troubleshooting](#troubleshooting)
-6. [Development Tips](#development-tips)
+5. [Google Drive Backup Setup](#google-drive-backup-setup)
+6. [Troubleshooting](#troubleshooting)
+7. [Development Tips](#development-tips)
 
 ---
 
@@ -264,6 +265,52 @@ npx electron-builder --linux
 ```
 
 Output: `dist/BookEase.AppImage`
+
+---
+
+## ☁️ Google Drive Backup Setup
+
+To enable Google Drive Backup, you need to configure Google Sign-In credentials.
+
+### Step 1: Create Google Cloud Project
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project
+3. Enable **Google Drive API** for the project
+
+### Step 2: Configure OAuth Consent Screen
+1. Go to **APIs & Services > OAuth consent screen**
+2. Select **External** (or Internal if you have a Google Workspace)
+3. Fill in required fields (App name, email, etc.)
+4. Add Scope: `https://www.googleapis.com/auth/drive.file`
+5. Add Test Users (your email)
+
+### Step 3: Create Credentials
+1. Go to **APIs & Services > Credentials**
+2. **Create Credentials > OAuth client ID**
+
+#### For Web (Required for Expo/Web)
+- Application type: **Web application**
+- Name: `BookEase Web`
+- Authorized JavaScript origins: `http://localhost:8081` (for dev)
+- Authorized redirect URIs: `http://localhost:8081`
+
+#### For Android
+- Application type: **Android**
+- Package name: `com.anonymous.bookeaseapp` (or your custom package name)
+- SHA-1 certificate fingerprint: Run `cd android && ./gradlew signingReport` to get this from your debug keystore.
+
+#### For iOS
+- Application type: **iOS**
+- Bundle ID: `com.anonymous.bookeaseapp` (or your custom bundle ID)
+
+### Step 4: Configure App
+1. Open `core/services/BackupService.ts`
+2. Replace the placeholder Client IDs with your actual values:
+   ```typescript
+   const GOOGLE_WEB_CLIENT_ID = 'YOUR_WEB_CLIENT_ID';
+   const GOOGLE_IOS_CLIENT_ID = 'YOUR_IOS_CLIENT_ID';
+   const GOOGLE_ANDROID_CLIENT_ID = 'YOUR_ANDROID_CLIENT_ID';
+   ```
 
 ---
 
@@ -545,7 +592,7 @@ The app will open in a desktop window. No mobile setup needed!
 
 ---
 
-**Last Updated**: November 26, 2025  
-**Version**: 1.0.0  
+**Last Updated**: November 29, 2025  
+**Version**: 1.1.0  
 
 For questions or issues, refer to the Troubleshooting section above.

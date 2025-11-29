@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Appearance, useColorScheme, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Appearance, useColorScheme, Modal, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BackupService } from '../../core/services/BackupService';
+import { User } from '@react-native-google-signin/google-signin';
 
 export default function SettingsScreen() {
     const colorScheme = useColorScheme();
     const [themeModalVisible, setThemeModalVisible] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const isDark = colorScheme === 'dark';
     const themeColors = {
@@ -20,9 +24,75 @@ export default function SettingsScreen() {
 
     const styles = getStyles(themeColors);
 
+    useEffect(() => {
+        checkUser();
+    }, []);
+
+    const checkUser = async () => {
+        const currentUser = await BackupService.getCurrentUser();
+        setUser(currentUser);
+    };
+
     const handleThemeChange = (mode: 'light' | 'dark' | null) => {
         Appearance.setColorScheme(mode);
         setThemeModalVisible(false);
+    };
+
+    const handleGoogleSignIn = async () => {
+        setIsLoading(true);
+        const userInfo = await BackupService.signIn();
+        setUser(userInfo);
+        setIsLoading(false);
+    };
+
+    const handleGoogleSignOut = async () => {
+        setIsLoading(true);
+        await BackupService.signOut();
+        setUser(null);
+        setIsLoading(false);
+    };
+
+    const handleBackup = async () => {
+        if (!user) {
+            Alert.alert('Sign In Required', 'Please sign in with Google to backup your data.');
+            return;
+        }
+        setIsLoading(true);
+        const success = await BackupService.backupDatabase();
+        setIsLoading(false);
+        if (success) {
+            Alert.alert('Success', 'Backup completed successfully!');
+        } else {
+            Alert.alert('Error', 'Backup failed. Please try again.');
+        }
+    };
+
+    const handleRestore = async () => {
+        if (!user) {
+            Alert.alert('Sign In Required', 'Please sign in with Google to restore your data.');
+            return;
+        }
+        Alert.alert(
+            'Confirm Restore',
+            'This will overwrite your current data with the backup from Google Drive. Are you sure?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Restore',
+                    style: 'destructive',
+                    onPress: async () => {
+                        setIsLoading(true);
+                        const success = await BackupService.restoreDatabase();
+                        setIsLoading(false);
+                        if (success) {
+                            Alert.alert('Success', 'Data restored successfully! Please restart the app.');
+                        } else {
+                            Alert.alert('Error', 'Restore failed. No backup found or network error.');
+                        }
+                    },
+                },
+            ]
+        );
     };
 
     return (
@@ -48,21 +118,49 @@ export default function SettingsScreen() {
             </View>
 
             <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Google Drive Backup</Text>
+
+                {!user ? (
+                    <TouchableOpacity style={styles.settingItem} onPress={handleGoogleSignIn} disabled={isLoading}>
+                        <View style={styles.settingLeft}>
+                            <Ionicons name="logo-google" size={24} color={themeColors.subText} />
+                            <Text style={styles.settingText}>Sign in with Google</Text>
+                        </View>
+                        {isLoading ? <ActivityIndicator size="small" color={themeColors.subText} /> : <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />}
+                    </TouchableOpacity>
+                ) : (
+                    <>
+                        <View style={styles.settingItem}>
+                            <View style={styles.settingLeft}>
+                                <Ionicons name="person-circle-outline" size={24} color={themeColors.subText} />
+                                <Text style={styles.settingText}>{user.user.email}</Text>
+                            </View>
+                            <TouchableOpacity onPress={handleGoogleSignOut}>
+                                <Text style={{ color: 'red', marginRight: 8 }}>Sign Out</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <TouchableOpacity style={styles.settingItem} onPress={handleBackup} disabled={isLoading}>
+                            <View style={styles.settingLeft}>
+                                <Ionicons name="cloud-upload-outline" size={24} color={themeColors.subText} />
+                                <Text style={styles.settingText}>Backup Now</Text>
+                            </View>
+                            {isLoading ? <ActivityIndicator size="small" color={themeColors.subText} /> : <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.settingItem} onPress={handleRestore} disabled={isLoading}>
+                            <View style={styles.settingLeft}>
+                                <Ionicons name="cloud-download-outline" size={24} color={themeColors.subText} />
+                                <Text style={styles.settingText}>Restore from Backup</Text>
+                            </View>
+                            {isLoading ? <ActivityIndicator size="small" color={themeColors.subText} /> : <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />}
+                        </TouchableOpacity>
+                    </>
+                )}
+            </View>
+
+            <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Data Management</Text>
-                <TouchableOpacity style={styles.settingItem}>
-                    <View style={styles.settingLeft}>
-                        <Ionicons name="cloud-upload-outline" size={24} color={themeColors.subText} />
-                        <Text style={styles.settingText}>Backup to Google Drive</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.settingItem}>
-                    <View style={styles.settingLeft}>
-                        <Ionicons name="cloud-download-outline" size={24} color={themeColors.subText} />
-                        <Text style={styles.settingText}>Restore from Backup</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />
-                </TouchableOpacity>
                 <TouchableOpacity style={styles.settingItem}>
                     <View style={styles.settingLeft}>
                         <Ionicons name="download-outline" size={24} color={themeColors.subText} />
@@ -116,7 +214,7 @@ export default function SettingsScreen() {
                 </View>
                 <View style={styles.settingItem}>
                     <Text style={styles.settingText}>Database</Text>
-                    <Text style={styles.settingValue}>Realm 12.0.0</Text>
+                    <Text style={styles.settingValue}>Expo SQLite</Text>
                 </View>
             </View>
 
