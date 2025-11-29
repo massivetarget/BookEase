@@ -10,6 +10,13 @@ export const getDBConnection = async () => {
   return db;
 };
 
+export const closeDatabase = async () => {
+  if (db) {
+    await db.closeAsync();
+    db = null;
+  }
+};
+
 export const createTables = async (db: SQLite.SQLiteDatabase) => {
   // Accounts Table
   await db.execAsync(`

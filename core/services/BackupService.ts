@@ -1,6 +1,10 @@
-import { GoogleSignin, statusCodes, User, SignInResponse } from '@react-native-google-signin/google-signin';
-import { File, Directory, Paths } from 'expo-file-system/next';
+import { GoogleSignin, statusCodes, User } from '@react-native-google-signin/google-signin';
+import * as FileSystem from 'expo-file-system';
+import { documentDirectory as legacyDocumentDirectory } from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
+import { closeDatabase } from '../database/Database';
+
+const { File, Directory } = FileSystem as any;
 
 // Configure Google Sign-In
 // You need to replace these with your actual Client IDs from Google Cloud Console
@@ -16,9 +20,14 @@ GoogleSignin.configure({
 });
 
 const DB_NAME = 'bookease.db';
-// Construct path using the new Paths API
-const DB_DIR = new Directory(Paths.document, 'SQLite');
-const DB_FILE = new File(DB_DIR, DB_NAME);
+
+// Use legacy documentDirectory to ensure we get the correct path
+const docDir = legacyDocumentDirectory;
+
+// Construct path using the new API
+const DB_DIR_PATH = (docDir || '') + 'SQLite';
+const DB_DIR = new Directory(DB_DIR_PATH);
+const DB_FILE = new File(DB_DIR_PATH + '/' + DB_NAME);
 const MIME_TYPE = 'application/x-sqlite3';
 
 export class BackupService {
@@ -61,15 +70,14 @@ export class BackupService {
         return null;
     }
 
-    static async backupDatabase(): Promise<boolean> {
+    static async backupDatabase(): Promise<{ success: boolean; error?: string }> {
         try {
             const tokens = await GoogleSignin.getTokens();
             const accessToken = tokens.accessToken;
 
             // 1. Check if the database file exists
             if (!DB_FILE.exists) {
-                console.error('Database file not found at:', DB_FILE.uri);
-                return false;
+                return { success: false, error: 'Local database file not found.' };
             }
 
             // 2. Search for existing backup file in Drive
@@ -79,22 +87,23 @@ export class BackupService {
             });
             const searchData = await searchResponse.json();
 
+            if (searchData.error) {
+                console.error('Drive API Error:', searchData.error);
+                return { success: false, error: searchData.error.message };
+            }
+
             let fileId = null;
             if (searchData.files && searchData.files.length > 0) {
                 fileId = searchData.files[0].id;
             }
 
-            const metadata = {
-                name: DB_NAME,
-                mimeType: MIME_TYPE,
-            };
-
-            // Read file content as Uint8Array
+            // Read file content
             const fileContent = await DB_FILE.bytes();
 
             if (fileId) {
                 // Update existing file
                 const updateUrl = `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`;
+
                 const response = await fetch(updateUrl, {
                     method: 'PATCH',
                     headers: {
@@ -104,12 +113,23 @@ export class BackupService {
                     body: fileContent,
                 });
 
-                return response.status === 200;
+                if (response.status !== 200) {
+                    const errorText = await response.text();
+                    console.error('Update failed:', errorText);
+                    return { success: false, error: `Upload failed with status ${response.status}` };
+                }
+
+                return { success: true };
 
             } else {
                 // Create new file
                 // Step A: Create metadata
                 const createMetaUrl = 'https://www.googleapis.com/drive/v3/files';
+                const metadata = {
+                    name: DB_NAME,
+                    mimeType: MIME_TYPE,
+                };
+
                 const metaResponse = await fetch(createMetaUrl, {
                     method: 'POST',
                     headers: {
@@ -119,12 +139,21 @@ export class BackupService {
                     body: JSON.stringify(metadata),
                 });
                 const metaData = await metaResponse.json();
+
+                if (metaData.error) {
+                    console.error('Metadata Error:', metaData.error);
+                    return { success: false, error: metaData.error.message };
+                }
+
                 const newFileId = metaData.id;
 
-                if (!newFileId) return false;
+                if (!newFileId) {
+                    return { success: false, error: 'Failed to create file metadata.' };
+                }
 
                 // Step B: Upload content
                 const uploadUrl = `https://www.googleapis.com/upload/drive/v3/files/${newFileId}?uploadType=media`;
+
                 const response = await fetch(uploadUrl, {
                     method: 'PATCH',
                     headers: {
@@ -134,16 +163,22 @@ export class BackupService {
                     body: fileContent,
                 });
 
-                return response.status === 200;
+                if (response.status !== 200) {
+                    const errorText = await response.text();
+                    console.error('Upload failed:', errorText);
+                    return { success: false, error: `Upload failed with status ${response.status}` };
+                }
+
+                return { success: true };
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Backup failed:', error);
-            return false;
+            return { success: false, error: error.message || 'Unknown error occurred' };
         }
     }
 
-    static async restoreDatabase(): Promise<boolean> {
+    static async restoreDatabase(): Promise<{ success: boolean; error?: string }> {
         try {
             const tokens = await GoogleSignin.getTokens();
             const accessToken = tokens.accessToken;
@@ -155,9 +190,12 @@ export class BackupService {
             });
             const searchData = await searchResponse.json();
 
+            if (searchData.error) {
+                return { success: false, error: searchData.error.message };
+            }
+
             if (!searchData.files || searchData.files.length === 0) {
-                console.error('No backup found');
-                return false;
+                return { success: false, error: 'No backup found in Google Drive.' };
             }
 
             const fileId = searchData.files[0].id;
@@ -170,28 +208,30 @@ export class BackupService {
                 DB_DIR.create();
             }
 
+            // Close DB before overwriting
+            await closeDatabase();
+
             const response = await fetch(downloadUrl, {
                 headers: { Authorization: `Bearer ${accessToken}` },
             });
 
             if (response.status !== 200) {
                 console.error('Failed to download file from Drive');
-                return false;
+                return { success: false, error: `Download failed with status ${response.status}` };
             }
 
             const blob = await response.blob();
-            // Convert blob to ArrayBuffer then to Uint8Array
             const arrayBuffer = await new Response(blob).arrayBuffer();
             const uint8Array = new Uint8Array(arrayBuffer);
 
             // Write to file
             await DB_FILE.write(uint8Array);
 
-            return true;
+            return { success: true };
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Restore failed:', error);
-            return false;
+            return { success: false, error: error.message || 'Unknown error occurred' };
         }
     }
 }

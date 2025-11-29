@@ -58,12 +58,12 @@ export default function SettingsScreen() {
             return;
         }
         setIsLoading(true);
-        const success = await BackupService.backupDatabase();
+        const result = await BackupService.backupDatabase();
         setIsLoading(false);
-        if (success) {
+        if (result.success) {
             Alert.alert('Success', 'Backup completed successfully!');
         } else {
-            Alert.alert('Error', 'Backup failed. Please try again.');
+            Alert.alert('Backup Failed', result.error || 'Please try again.');
         }
     };
 
@@ -82,12 +82,12 @@ export default function SettingsScreen() {
                     style: 'destructive',
                     onPress: async () => {
                         setIsLoading(true);
-                        const success = await BackupService.restoreDatabase();
+                        const result = await BackupService.restoreDatabase();
                         setIsLoading(false);
-                        if (success) {
+                        if (result.success) {
                             Alert.alert('Success', 'Data restored successfully! Please restart the app.');
                         } else {
-                            Alert.alert('Error', 'Restore failed. No backup found or network error.');
+                            Alert.alert('Restore Failed', result.error || 'No backup found or network error.');
                         }
                     },
                 },
