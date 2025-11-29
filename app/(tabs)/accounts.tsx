@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     View,
     Text,
@@ -8,13 +8,9 @@ import {
     TextInput,
     Modal,
     ScrollView,
-    Alert,
-    Platform,
 } from 'react-native';
-import { useQuery, useRealm } from '@realm/react';
-import { Account } from '../../models';
 import { Ionicons } from '@expo/vector-icons';
-import { BSON } from 'realm';
+import { useAccountsViewModel } from '../../core/viewmodels/useAccountsViewModel';
 
 // Shared types and constants
 const ACCOUNT_TYPES: Array<'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense'> = [
@@ -36,25 +32,7 @@ const getTypeColor = (accountType: string) => {
     }
 };
 
-// Mock Data for Web
-const MOCK_ACCOUNTS_DATA = [
-    { _id: '1', code: '1001', name: 'Cash on Hand', type: 'Asset', balance: 5000, isActive: true },
-    { _id: '2', code: '2001', name: 'Accounts Payable', type: 'Liability', balance: 2000, isActive: true },
-    { _id: '3', code: '3001', name: 'Owner Equity', type: 'Equity', balance: 3000, isActive: true },
-    { _id: '4', code: '4001', name: 'Sales Revenue', type: 'Income', balance: 15000, isActive: true },
-    { _id: '5', code: '5001', name: 'Rent Expense', type: 'Expense', balance: 1200, isActive: true },
-];
-
 function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearchQuery, filterType, setFilterType, openAddModal }) {
-    const filteredAccounts = accounts.filter((account) => {
-        const matchesSearch =
-            searchQuery === '' ||
-            account.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            account.code.includes(searchQuery);
-        const matchesType = filterType === null || account.type === filterType;
-        return matchesSearch && matchesType;
-    });
-
     const renderAccount = ({ item }) => (
         <TouchableOpacity
             style={[styles.accountCard, !item.isActive && styles.inactiveCard]}
@@ -139,7 +117,7 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
 
             {/* Accounts List */}
             <FlatList
-                data={filteredAccounts}
+                data={accounts}
                 renderItem={renderAccount}
                 keyExtractor={(item) => item._id.toString()}
                 contentContainerStyle={styles.listContainer}
@@ -241,177 +219,48 @@ function AccountModal({ visible, onClose, onSave, editingAccount, code, setCode,
     );
 }
 
-function AccountsScreenWeb() {
-    const [accounts, setAccounts] = useState(MOCK_ACCOUNTS_DATA);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [filterType, setFilterType] = useState(null);
-    const [modalVisible, setModalVisible] = useState(false);
-    const [editingAccount, setEditingAccount] = useState(null);
-
-    const [code, setCode] = useState('');
-    const [name, setName] = useState('');
-    const [type, setType] = useState('Asset');
-    const [subtype, setSubtype] = useState('');
-
-    const openAddModal = () => {
-        setEditingAccount(null);
-        setCode('');
-        setName('');
-        setType('Asset');
-        setSubtype('');
-        setModalVisible(true);
-    };
-
-    const openEditModal = (account) => {
-        setEditingAccount(account);
-        setCode(account.code);
-        setName(account.name);
-        setType(account.type);
-        setSubtype(account.subtype || '');
-        setModalVisible(true);
-    };
-
-    const handleSave = () => {
-        Alert.alert('Demo Mode', 'Changes are not saved in demo mode.');
-        setModalVisible(false);
-    };
-
-    const toggleAccountStatus = (account) => {
-        Alert.alert('Demo Mode', 'Changes are not saved in demo mode.');
-    };
-
-    return (
-        <>
-            <AccountsList
-                accounts={accounts}
-                onEdit={openEditModal}
-                onToggleStatus={toggleAccountStatus}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                filterType={filterType}
-                setFilterType={setFilterType}
-                openAddModal={openAddModal}
-            />
-            <AccountModal
-                visible={modalVisible}
-                onClose={() => setModalVisible(false)}
-                onSave={handleSave}
-                editingAccount={editingAccount}
-                code={code}
-                setCode={setCode}
-                name={name}
-                setName={setName}
-                type={type}
-                setType={setType}
-                subtype={subtype}
-                setSubtype={setSubtype}
-            />
-        </>
-    );
-}
-
-function AccountsScreenNative() {
-    const realm = useRealm();
-    const accounts = useQuery(Account, (collection) => collection.sorted('code'));
-    const [searchQuery, setSearchQuery] = useState('');
-    const [filterType, setFilterType] = useState(null);
-    const [modalVisible, setModalVisible] = useState(false);
-    const [editingAccount, setEditingAccount] = useState(null);
-
-    const [code, setCode] = useState('');
-    const [name, setName] = useState('');
-    const [type, setType] = useState('Asset');
-    const [subtype, setSubtype] = useState('');
-
-    const openAddModal = () => {
-        setEditingAccount(null);
-        setCode('');
-        setName('');
-        setType('Asset');
-        setSubtype('');
-        setModalVisible(true);
-    };
-
-    const openEditModal = (account) => {
-        setEditingAccount(account);
-        setCode(account.code);
-        setName(account.name);
-        setType(account.type);
-        setSubtype(account.subtype || '');
-        setModalVisible(true);
-    };
-
-    const handleSave = () => {
-        if (!code || !name) {
-            Alert.alert('Error', 'Code and Name are required');
-            return;
-        }
-
-        realm.write(() => {
-            if (editingAccount) {
-                editingAccount.name = name;
-                editingAccount.type = type;
-                editingAccount.subtype = subtype || undefined;
-                editingAccount.updatedAt = new Date();
-            } else {
-                realm.create(Account, {
-                    _id: new BSON.ObjectId(),
-                    code,
-                    name,
-                    type: type as 'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense',
-                    subtype: subtype || undefined,
-                    balance: 0,
-                    isActive: true,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                });
-            }
-        });
-        setModalVisible(false);
-    };
-
-    const toggleAccountStatus = (account) => {
-        realm.write(() => {
-            account.isActive = !account.isActive;
-            account.updatedAt = new Date();
-        });
-    };
-
-    return (
-        <>
-            <AccountsList
-                accounts={accounts}
-                onEdit={openEditModal}
-                onToggleStatus={toggleAccountStatus}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                filterType={filterType}
-                setFilterType={setFilterType}
-                openAddModal={openAddModal}
-            />
-            <AccountModal
-                visible={modalVisible}
-                onClose={() => setModalVisible(false)}
-                onSave={handleSave}
-                editingAccount={editingAccount}
-                code={code}
-                setCode={setCode}
-                name={name}
-                setName={setName}
-                type={type}
-                setType={setType}
-                subtype={subtype}
-                setSubtype={setSubtype}
-            />
-        </>
-    );
-}
-
 export default function AccountsScreen() {
-    if (Platform.OS === 'web') {
-        return <AccountsScreenWeb />;
-    }
-    return <AccountsScreenNative />;
+    const {
+        accounts,
+        searchQuery,
+        setSearchQuery,
+        filterType,
+        setFilterType,
+        modalVisible,
+        setModalVisible,
+        editingAccount,
+        form,
+        actions
+    } = useAccountsViewModel();
+
+    return (
+        <>
+            <AccountsList
+                accounts={accounts}
+                onEdit={actions.openEditModal}
+                onToggleStatus={actions.toggleStatus}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                filterType={filterType}
+                setFilterType={setFilterType}
+                openAddModal={actions.openAddModal}
+            />
+            <AccountModal
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                onSave={actions.saveAccount}
+                editingAccount={editingAccount}
+                code={form.code}
+                setCode={form.setCode}
+                name={form.name}
+                setName={form.setName}
+                type={form.type}
+                setType={form.setType}
+                subtype={form.subtype}
+                setSubtype={form.setSubtype}
+            />
+        </>
+    );
 }
 
 const styles = StyleSheet.create({

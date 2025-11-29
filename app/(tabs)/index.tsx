@@ -1,31 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
-import { useQuery } from '@realm/react';
-import { Account, JournalEntry } from '../../models';
+import { useDashboardViewModel } from '../../core/viewmodels/useDashboardViewModel';
 
-// Mock data for Web
-const MOCK_ACCOUNTS = [
-    { balance: 5000, type: 'Asset', isActive: true },
-    { balance: 2000, type: 'Liability', isActive: true },
-    { balance: 3000, type: 'Equity', isActive: true },
-];
-const MOCK_ENTRIES = [{}, {}, {}]; // Just for length count
-
-function DashboardContent({ accounts, journalEntries }) {
-    // Calculate total assets, liabilities, equity
-    const totalAssets = accounts
-        .filter(acc => acc.type === 'Asset' && acc.isActive === true)
-        .reduce((sum, acc) => sum + acc.balance, 0);
-
-    const totalLiabilities = accounts
-        .filter(acc => acc.type === 'Liability' && acc.isActive === true)
-        .reduce((sum, acc) => sum + acc.balance, 0);
-
-    const totalEquity = accounts
-        .filter(acc => acc.type === 'Equity' && acc.isActive === true)
-        .reduce((sum, acc) => sum + acc.balance, 0);
-
-    const postedEntriesCount = journalEntries.filter(e => e.status === 'Posted').length;
+function DashboardContent() {
+    const {
+        accounts,
+        journalEntries,
+        totalAssets,
+        totalLiabilities,
+        totalEquity,
+        postedEntriesCount
+    } = useDashboardViewModel();
 
     return (
         <ScrollView style={styles.container}>
@@ -94,14 +79,7 @@ function DashboardContent({ accounts, journalEntries }) {
 }
 
 export default function DashboardScreen() {
-    if (Platform.OS === 'web') {
-        return <DashboardContent accounts={MOCK_ACCOUNTS} journalEntries={MOCK_ENTRIES} />;
-    }
-
-    const accounts = useQuery(Account);
-    const journalEntries = useQuery(JournalEntry);
-
-    return <DashboardContent accounts={accounts} journalEntries={journalEntries} />;
+    return <DashboardContent />;
 }
 
 const styles = StyleSheet.create({

@@ -11,14 +11,15 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
-    "@realm/react": "^0.6.0",
     "expo": "^54.0.25",
+    "expo-asset": "~12.0.10",
     "expo-constants": "~18.0.10",
     "expo-dev-client": "~6.0.18",
     "expo-font": "~14.0.9",
     "expo-linking": "~8.0.9",
     "expo-router": "^6.0.15",
     "expo-splash-screen": "~31.0.11",
+    "expo-sqlite": "~16.0.9",
     "expo-status-bar": "~3.0.8",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -30,14 +31,13 @@
     "react-native-screens": "~4.16.0",
     "react-native-web": "^0.21.0",
     "react-native-worklets": "0.5.1",
-    "realm": "12.0.0"
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/plugin-proposal-decorators": "^7.22.5",
-    "@expo/webpack-config": "^18.1.4",
-    "@realm/babel-plugin": "^0.1.1",
     "@types/react": "~19.1.10",
+    "@types/uuid": "^10.0.0",
     "cross-env": "^10.1.0",
     "electron": "^39.2.3",
     "typescript": "~5.9.2"

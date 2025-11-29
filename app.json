@@ -8,7 +8,9 @@
     ],
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      "expo-sqlite",
+      "expo-asset"
     ],
     "android": {
       "package": "com.anonymous.BookEaseApp",
@@ -16,7 +18,7 @@
     },
     "scheme": "bookeaseapp",
     "web": {
-      "bundler": "webpack"
+      "favicon": "./assets/images/favicon.png"
     },
     "extra": {
       "router": {

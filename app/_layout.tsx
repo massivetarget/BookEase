@@ -1,48 +1,89 @@
-import 'react-native-get-random-values';
-import React from 'react';
-import { Platform } from 'react-native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
-import { RealmProvider } from '@realm/react';
-import { schemas } from '../models';
-import { seedDefaultAccounts } from '../utils/seedAccounts';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
+import 'react-native-reanimated';
+import { Platform, View, Text, useColorScheme } from 'react-native';
+
+import { ServiceProvider, useServices } from '../core/services/ServiceContext';
+import { MockAccountRepository } from '../core/repositories/mock/MockAccountRepository';
+import { MockJournalRepository } from '../core/repositories/mock/MockJournalRepository';
+import { SQLiteAccountRepository } from '../core/repositories/sqlite/SQLiteAccountRepository';
+import { SQLiteJournalRepository } from '../core/repositories/sqlite/SQLiteJournalRepository';
+import { getDBConnection, createTables } from '../core/database/Database';
+
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-    const isWeb = Platform.OS === 'web';
+    const colorScheme = useColorScheme();
 
-    const content = (
-        <Stack
-            screenOptions={{
-                headerStyle: {
-                    backgroundColor: '#2563eb',
-                },
-                headerTintColor: '#fff',
-                headerTitleStyle: {
-                    fontWeight: 'bold',
-                },
-            }}
-        >
-            <Stack.Screen
-                name="(tabs)"
-                options={{
-                    headerShown: false,
-                }}
-            />
-        </Stack>
-    );
+    // Fonts are missing, skipping loading for now to unblock build
+    const loaded = true;
 
-    if (isWeb) {
-        return content;
+    useEffect(() => {
+        if (loaded) {
+            SplashScreen.hideAsync();
+        }
+    }, [loaded]);
+
+    if (!loaded) {
+        return null;
     }
 
     return (
-        <RealmProvider
-            schema={schemas}
-            onFirstOpen={(realm) => {
-                // Seed default Chart of Accounts on first run
-                seedDefaultAccounts(realm);
-            }}
-        >
-            {content}
-        </RealmProvider>
+        <ServiceProvider>
+            <ServiceInitializer>
+                <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                    <Stack>
+                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                        <Stack.Screen name="+not-found" />
+                    </Stack>
+                    <StatusBar style="auto" />
+                </ThemeProvider>
+            </ServiceInitializer>
+        </ServiceProvider>
     );
+}
+
+function ServiceInitializer({ children }: { children: React.ReactNode }) {
+    const [ready, setReady] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const { setAccountRepository, setJournalRepository } = useServices();
+
+    useEffect(() => {
+        const init = async () => {
+            try {
+                if (Platform.OS === 'web') {
+                    setAccountRepository(new MockAccountRepository());
+                    setJournalRepository(new MockJournalRepository());
+                } else {
+                    const db = await getDBConnection();
+                    await createTables(db);
+                    setAccountRepository(new SQLiteAccountRepository(db));
+                    setJournalRepository(new SQLiteJournalRepository(db));
+                }
+                setReady(true);
+            } catch (e: any) {
+                setError(e.message);
+            }
+        };
+        init();
+    }, []);
+
+    if (error) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>Error initializing database: {error}</Text>
+            </View>
+        );
+    }
+
+    if (!ready) {
+        return null;
+    }
+
+    return <>{children}</>;
 }

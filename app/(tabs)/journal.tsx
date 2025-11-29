@@ -11,10 +11,9 @@ import {
     Alert,
     Platform,
 } from 'react-native';
-import { useQuery, useRealm } from '@realm/react';
-import { JournalEntry, JournalLine, Account } from '../../models';
 import { Ionicons } from '@expo/vector-icons';
-import { BSON } from 'realm';
+import { useJournalViewModel } from '../../core/viewmodels/useJournalViewModel';
+import { JournalEntry } from '../../models';
 
 interface LineItem {
     id: string;
@@ -25,27 +24,16 @@ interface LineItem {
     description: string;
 }
 
-// Mock Data for Web
-const MOCK_JOURNAL_ENTRIES = [
-    {
-        _id: '1',
-        date: new Date(),
-        description: 'Opening Balance',
-        reference: 'REF-001',
-        status: 'Posted',
-        lines: [
-            { _id: '1', accountId: '1', debit: 5000, credit: 0, description: 'Cash' },
-            { _id: '2', accountId: '3', debit: 0, credit: 5000, description: 'Equity' },
-        ],
-        getTotalAmount: () => 5000,
-    },
-];
-
-const MOCK_ACCOUNTS = [
-    { _id: '1', code: '1001', name: 'Cash on Hand', type: 'Asset', isActive: true },
-    { _id: '2', code: '2001', name: 'Accounts Payable', type: 'Liability', isActive: true },
-    { _id: '3', code: '3001', name: 'Owner Equity', type: 'Equity', isActive: true },
-];
+function getTypeColor(type: string) {
+    switch (type) {
+        case 'Asset': return '#059669';
+        case 'Liability': return '#dc2626';
+        case 'Equity': return '#7c3aed';
+        case 'Income': return '#2563eb';
+        case 'Expense': return '#ea580c';
+        default: return '#6b7280';
+    }
+}
 
 function JournalList({ journalEntries, onAdd, onView }) {
     const renderJournalEntry = ({ item }) => (
@@ -94,7 +82,7 @@ function JournalList({ journalEntries, onAdd, onView }) {
     );
 }
 
-function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts, isWeb }) {
+function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [description, setDescription] = useState('');
     const [reference, setReference] = useState('');
@@ -139,8 +127,16 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts, is
 
     const selectAccount = (account) => {
         if (currentLineIndex !== null) {
-            updateLine(lines[currentLineIndex].id, 'accountId', account._id.toString());
-            updateLine(lines[currentLineIndex].id, 'accountName', `${account.code} - ${account.name}`);
+            setLines(lines.map((line, index) => {
+                if (index === currentLineIndex) {
+                    return {
+                        ...line,
+                        accountId: account._id.toString(),
+                        accountName: `${account.code} - ${account.name}`
+                    };
+                }
+                return line;
+            }));
         }
         setAccountPickerVisible(false);
         setCurrentLineIndex(null);
@@ -286,117 +282,27 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts, is
     );
 }
 
-function JournalScreenWeb() {
-    const [modalVisible, setModalVisible] = useState(false);
-    const [viewModalVisible, setViewModalVisible] = useState(false);
-    const [selectedEntry, setSelectedEntry] = useState(null);
-
-    const handleSaveDraft = () => { Alert.alert('Demo Mode', 'Changes are not saved in demo mode.'); setModalVisible(false); };
-    const handlePost = () => { Alert.alert('Demo Mode', 'Changes are not saved in demo mode.'); setModalVisible(false); };
-    const viewEntry = (entry) => { setSelectedEntry(entry); setViewModalVisible(true); };
-
-    return (
-        <>
-            <JournalList journalEntries={MOCK_JOURNAL_ENTRIES} onAdd={() => setModalVisible(true)} onView={viewEntry} />
-            <JournalEntryModal
-                visible={modalVisible}
-                onClose={() => setModalVisible(false)}
-                onSaveDraft={handleSaveDraft}
-                onPost={handlePost}
-                accounts={MOCK_ACCOUNTS}
-                isWeb={true}
-            />
-            {/* View Modal would be similar, skipping for brevity */}
-        </>
-    );
-}
-
-function JournalScreenNative() {
-    const realm = useRealm();
-    const journalEntries = useQuery(JournalEntry, (collection) => collection.sorted('date', true));
-    const accounts = useQuery(Account, (collection) => collection.filtered('isActive == true').sorted('code'));
-    const [modalVisible, setModalVisible] = useState(false);
-    const [viewModalVisible, setViewModalVisible] = useState(false);
-    const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
-
-    const handleSaveDraft = (data) => {
-        realm.write(() => {
-            const entry = realm.create(JournalEntry, {
-                _id: new BSON.ObjectId(),
-                date: new Date(data.date),
-                description: data.description,
-                reference: data.reference || undefined,
-                status: 'Draft',
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            });
-            data.lines.forEach((line) => {
-                const journalLine = realm.create(JournalLine, {
-                    _id: new BSON.ObjectId(),
-                    accountId: new BSON.ObjectId(line.accountId),
-                    debit: parseFloat(line.debit) || 0,
-                    credit: parseFloat(line.credit) || 0,
-                    description: line.description || undefined,
-                    createdAt: new Date(),
-                });
-                entry.lines.push(journalLine);
-            });
-        });
-        Alert.alert('Success', 'Journal entry saved as draft');
-        setModalVisible(false);
-    };
-
-    const handlePost = (data) => {
-        realm.write(() => {
-            const entry = realm.create(JournalEntry, {
-                _id: new BSON.ObjectId(),
-                date: new Date(data.date),
-                description: data.description,
-                reference: data.reference || undefined,
-                status: 'Posted',
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            });
-            data.lines.forEach((line) => {
-                const journalLine = realm.create(JournalLine, {
-                    _id: new BSON.ObjectId(),
-                    accountId: new BSON.ObjectId(line.accountId),
-                    debit: parseFloat(line.debit) || 0,
-                    credit: parseFloat(line.credit) || 0,
-                    description: line.description || undefined,
-                    createdAt: new Date(),
-                });
-                entry.lines.push(journalLine);
-
-                const account = realm.objectForPrimaryKey(Account, new BSON.ObjectId(line.accountId));
-                if (account) {
-                    const debitAmount = parseFloat(line.debit) || 0;
-                    const creditAmount = parseFloat(line.credit) || 0;
-                    if (account.type === 'Asset' || account.type === 'Expense') {
-                        account.balance += debitAmount - creditAmount;
-                    } else {
-                        account.balance += creditAmount - debitAmount;
-                    }
-                    account.updatedAt = new Date();
-                }
-            });
-        });
-        Alert.alert('Success', 'Journal entry posted successfully');
-        setModalVisible(false);
-    };
-
-    const viewEntry = (entry: JournalEntry) => { setSelectedEntry(entry); setViewModalVisible(true); };
+export default function JournalScreen() {
+    const {
+        journalEntries,
+        accounts,
+        modalVisible,
+        setModalVisible,
+        viewModalVisible,
+        setViewModalVisible,
+        selectedEntry,
+        actions
+    } = useJournalViewModel();
 
     return (
         <>
-            <JournalList journalEntries={journalEntries} onAdd={() => setModalVisible(true)} onView={viewEntry} />
+            <JournalList journalEntries={journalEntries} onAdd={() => setModalVisible(true)} onView={actions.viewEntry} />
             <JournalEntryModal
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
-                onSaveDraft={handleSaveDraft}
-                onPost={handlePost}
+                onSaveDraft={actions.saveDraft}
+                onPost={actions.postEntry}
                 accounts={accounts}
-                isWeb={false}
             />
             {/* View Modal Logic Here */}
             <Modal visible={viewModalVisible} animationType="slide" transparent>
@@ -435,7 +341,12 @@ function JournalScreenNative() {
 
                                 <Text style={styles.viewSectionTitle}>Lines:</Text>
                                 {selectedEntry.lines.map((line, index) => {
-                                    const account = realm.objectForPrimaryKey(Account, line.accountId);
+                                    // Note: In MVVM, the lines should probably already have account names populated
+                                    // or we should use a helper. For now, we might not have easy access to the account object
+                                    // if it's just an ID.
+                                    // The ViewModel could enrich this data.
+                                    // For simplicity in this refactor, we'll try to find it in the accounts list passed to the view.
+                                    const account = accounts.find(a => a._id.toString() === line.accountId.toString());
                                     return (
                                         <View key={line._id.toString()} style={styles.viewLineCard}>
                                             <Text style={styles.viewLineNumber}>Line {index + 1}</Text>
@@ -472,30 +383,6 @@ function JournalScreenNative() {
             </Modal>
         </>
     );
-}
-
-export default function JournalScreen() {
-    if (Platform.OS === 'web') {
-        return <JournalScreenWeb />;
-    }
-    return <JournalScreenNative />;
-}
-
-function getTypeColor(type: string) {
-    switch (type) {
-        case 'Asset':
-            return '#059669';
-        case 'Liability':
-            return '#dc2626';
-        case 'Equity':
-            return '#7c3aed';
-        case 'Income':
-            return '#2563eb';
-        case 'Expense':
-            return '#ea580c';
-        default:
-            return '#6b7280';
-    }
 }
 
 const styles = StyleSheet.create({
