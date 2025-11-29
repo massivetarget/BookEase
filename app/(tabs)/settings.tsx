@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Appearance, useColorScheme, Modal, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BackupService } from '../../core/services/BackupService';
+import { BackupService } from '@/core/services/BackupService';
 import { User } from '@react-native-google-signin/google-signin';
 
 export default function SettingsScreen() {

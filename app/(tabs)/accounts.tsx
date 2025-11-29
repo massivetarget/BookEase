@@ -3,14 +3,15 @@ import {
     View,
     Text,
     StyleSheet,
-    FlatList,
     TouchableOpacity,
     TextInput,
     Modal,
     ScrollView,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
-import { useAccountsViewModel } from '../../core/viewmodels/useAccountsViewModel';
+import { useAccountsViewModel } from '@/core/viewmodels/useAccountsViewModel';
+import { Account } from '@/models';
 
 // Shared types and constants
 const ACCOUNT_TYPES: Array<'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense'> = [
@@ -116,11 +117,14 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
             </ScrollView>
 
             {/* Accounts List */}
-            <FlatList
+            {/* Accounts List */}
+            <FlashList<Account>
                 data={accounts}
                 renderItem={renderAccount}
                 keyExtractor={(item) => item._id.toString()}
                 contentContainerStyle={styles.listContainer}
+                // @ts-ignore
+                estimatedItemSize={100}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="folder-open-outline" size={64} color="#d1d5db" />

@@ -7,12 +7,12 @@ import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import { Platform, View, Text, useColorScheme } from 'react-native';
 
-import { ServiceProvider, useServices } from '../core/services/ServiceContext';
-import { MockAccountRepository } from '../core/repositories/mock/MockAccountRepository';
-import { MockJournalRepository } from '../core/repositories/mock/MockJournalRepository';
-import { SQLiteAccountRepository } from '../core/repositories/sqlite/SQLiteAccountRepository';
-import { SQLiteJournalRepository } from '../core/repositories/sqlite/SQLiteJournalRepository';
-import { getDBConnection, createTables } from '../core/database/Database';
+import { ServiceProvider, useServices } from '@/core/services/ServiceContext';
+import { MockAccountRepository } from '@/core/repositories/mock/MockAccountRepository';
+import { MockJournalRepository } from '@/core/repositories/mock/MockJournalRepository';
+import { SQLiteAccountRepository } from '@/core/repositories/sqlite/SQLiteAccountRepository';
+import { SQLiteJournalRepository } from '@/core/repositories/sqlite/SQLiteJournalRepository';
+import { getDBConnection, createTables } from '@/core/database/Database';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

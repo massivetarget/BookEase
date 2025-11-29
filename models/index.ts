@@ -37,3 +37,13 @@ export interface JournalEntry {
 export const getJournalEntryTotal = (lines: JournalLine[]): number => {
     return lines.reduce((sum, line) => sum + (line.debit || 0), 0);
 };
+
+export interface AuditLog {
+    _id: string;
+    targetId: string;
+    targetType: string;
+    action: 'create' | 'update' | 'delete' | 'post' | 'unpost';
+    changes?: string;
+    timestamp: Date;
+    userPin?: string;
+}

@@ -3,7 +3,6 @@ import {
     View,
     Text,
     StyleSheet,
-    FlatList,
     TouchableOpacity,
     Modal,
     ScrollView,
@@ -11,9 +10,10 @@ import {
     Alert,
     Platform,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
-import { useJournalViewModel } from '../../core/viewmodels/useJournalViewModel';
-import { JournalEntry } from '../../models';
+import { useJournalViewModel } from '@/core/viewmodels/useJournalViewModel';
+import { JournalEntry, Account } from '@/models';
 
 interface LineItem {
     id: string;
@@ -61,11 +61,13 @@ function JournalList({ journalEntries, onAdd, onView }) {
 
     return (
         <View style={styles.container}>
-            <FlatList
+            <FlashList<JournalEntry>
                 data={journalEntries}
                 renderItem={renderJournalEntry}
                 keyExtractor={(item) => item._id.toString()}
                 contentContainerStyle={styles.listContainer}
+                // @ts-ignore
+                estimatedItemSize={120}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="document-text-outline" size={64} color="#d1d5db" />
@@ -215,7 +217,9 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
                             <Text style={styles.addLineText}>Add Line</Text>
                         </TouchableOpacity>
                     </View>
-                    <FlatList data={lines} renderItem={renderLine} keyExtractor={(item) => item.id} scrollEnabled={false} />
+                    <FlashList<LineItem> data={lines} renderItem={renderLine} keyExtractor={(item) => item.id} scrollEnabled={false}
+                        // @ts-ignore
+                        estimatedItemSize={200} />
                     <View style={[styles.balanceCard, isBalanced() ? styles.balanceCardGood : styles.balanceCardBad]}>
                         <View style={styles.balanceRow}>
                             <Text style={styles.balanceLabel}>Total Debits:</Text>
@@ -262,7 +266,7 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
                                 <Ionicons name="close" size={28} color="#6b7280" />
                             </TouchableOpacity>
                         </View>
-                        <FlatList
+                        <FlashList<Account>
                             data={accounts}
                             renderItem={({ item }) => (
                                 <TouchableOpacity style={styles.accountOption} onPress={() => selectAccount(item)}>
@@ -274,6 +278,8 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
                                 </TouchableOpacity>
                             )}
                             keyExtractor={(item) => item._id.toString()}
+                            // @ts-ignore
+                            estimatedItemSize={70}
                         />
                     </View>
                 </View>

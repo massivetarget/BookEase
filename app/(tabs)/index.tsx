@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
-import { useDashboardViewModel } from '../../core/viewmodels/useDashboardViewModel';
+import { useDashboardViewModel } from '@/core/viewmodels/useDashboardViewModel';
 
 function DashboardContent() {
     const {
