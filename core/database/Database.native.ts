@@ -3,16 +3,16 @@ import * as SQLite from 'expo-sqlite';
 let db: SQLite.SQLiteDatabase | null = null;
 
 export const getDBConnection = async () => {
-    if (db) {
-        return db;
-    }
-    db = await SQLite.openDatabaseAsync('bookease.db');
+  if (db) {
     return db;
+  }
+  db = await SQLite.openDatabaseAsync('bookease.db');
+  return db;
 };
 
 export const createTables = async (db: SQLite.SQLiteDatabase) => {
-    // Accounts Table
-    await db.execAsync(`
+  // Accounts Table
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS accounts (
       id TEXT PRIMARY KEY NOT NULL,
       code TEXT NOT NULL,
@@ -26,8 +26,8 @@ export const createTables = async (db: SQLite.SQLiteDatabase) => {
     );
   `);
 
-    // Journal Entries Table
-    await db.execAsync(`
+  // Journal Entries Table
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS journal_entries (
       id TEXT PRIMARY KEY NOT NULL,
       date TEXT NOT NULL,
@@ -39,8 +39,8 @@ export const createTables = async (db: SQLite.SQLiteDatabase) => {
     );
   `);
 
-    // Journal Lines Table
-    await db.execAsync(`
+  // Journal Lines Table
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS journal_lines (
       id TEXT PRIMARY KEY NOT NULL,
       entryId TEXT NOT NULL,
@@ -53,4 +53,26 @@ export const createTables = async (db: SQLite.SQLiteDatabase) => {
       FOREIGN KEY (accountId) REFERENCES accounts (id)
     );
   `);
+};
+
+export const seedDatabase = async (db: SQLite.SQLiteDatabase) => {
+  const result = await db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM accounts');
+  if (result && result.count === 0) {
+    const now = new Date().toISOString();
+    const accounts = [
+      { id: '1', code: '1001', name: 'Cash on Hand', type: 'Asset', balance: 5000 },
+      { id: '2', code: '2001', name: 'Accounts Payable', type: 'Liability', balance: 2000 },
+      { id: '3', code: '3001', name: 'Owner Equity', type: 'Equity', balance: 3000 },
+      { id: '4', code: '4001', name: 'Sales Revenue', type: 'Income', balance: 15000 },
+      { id: '5', code: '5001', name: 'Rent Expense', type: 'Expense', balance: 1200 },
+    ];
+
+    for (const acc of accounts) {
+      await db.runAsync(
+        `INSERT INTO accounts (id, code, name, type, balance, isActive, createdAt, updatedAt)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [acc.id, acc.code, acc.name, acc.type, acc.balance, 1, now, now]
+      );
+    }
+  }
 };

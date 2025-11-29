@@ -17,7 +17,7 @@ GoogleSignin.configure({
 
 const DB_NAME = 'bookease.db';
 // Construct path using the new Paths API
-const DB_DIR = new Directory(Paths.document + '/SQLite');
+const DB_DIR = new Directory(Paths.document, 'SQLite');
 const DB_FILE = new File(DB_DIR, DB_NAME);
 const MIME_TYPE = 'application/x-sqlite3';
 

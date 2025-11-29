@@ -261,7 +261,7 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
                 <View style={styles.pickerOverlay}>
                     <View style={styles.pickerContent}>
                         <View style={styles.pickerHeader}>
-                            <Text style={styles.pickerTitle}>Select Account</Text>
+                            <Text style={styles.pickerTitle}>Select Account ({accounts.length})</Text>
                             <TouchableOpacity onPress={() => setAccountPickerVisible(false)}>
                                 <Ionicons name="close" size={28} color="#6b7280" />
                             </TouchableOpacity>
@@ -705,6 +705,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         maxHeight: '80%',
+        minHeight: 400, // Ensure height for FlashList
     },
     pickerHeader: {
         flexDirection: 'row',

@@ -12,7 +12,7 @@ import { MockAccountRepository } from '@/core/repositories/mock/MockAccountRepos
 import { MockJournalRepository } from '@/core/repositories/mock/MockJournalRepository';
 import { SQLiteAccountRepository } from '@/core/repositories/sqlite/SQLiteAccountRepository';
 import { SQLiteJournalRepository } from '@/core/repositories/sqlite/SQLiteJournalRepository';
-import { getDBConnection, createTables } from '@/core/database/Database';
+import { getDBConnection, createTables, seedDatabase } from '@/core/database/Database';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -62,6 +62,7 @@ function ServiceInitializer({ children }: { children: React.ReactNode }) {
                 } else {
                     const db = await getDBConnection();
                     await createTables(db);
+                    await seedDatabase(db);
                     setAccountRepository(new SQLiteAccountRepository(db));
                     setJournalRepository(new SQLiteJournalRepository(db));
                 }
