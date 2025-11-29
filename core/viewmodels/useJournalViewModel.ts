@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { useServices } from '../services/ServiceContext';
 import { JournalEntry, Account } from '../../models';
 import { Alert } from 'react-native';
@@ -13,23 +14,25 @@ export function useJournalViewModel() {
     const [viewModalVisible, setViewModalVisible] = useState(false);
     const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
 
-    useEffect(() => {
-        const updateData = async () => {
-            const entries = await journalRepository.getAll();
-            const accs = await accountRepository.getAll();
-            setJournalEntries([...entries]);
-            setAccounts([...accs]);
-        };
+    useFocusEffect(
+        useCallback(() => {
+            const updateData = async () => {
+                const entries = await journalRepository.getAll();
+                const accs = await accountRepository.getAll();
+                setJournalEntries([...entries]);
+                setAccounts([...accs]);
+            };
 
-        updateData();
-        const unsubJournal = journalRepository.subscribe(updateData);
-        const unsubAccounts = accountRepository.subscribe(updateData);
+            updateData();
+            const unsubJournal = journalRepository.subscribe(updateData);
+            const unsubAccounts = accountRepository.subscribe(updateData);
 
-        return () => {
-            unsubJournal();
-            unsubAccounts();
-        };
-    }, [journalRepository, accountRepository]);
+            return () => {
+                unsubJournal();
+                unsubAccounts();
+            };
+        }, [journalRepository, accountRepository])
+    );
 
     const processData = (data: any) => ({
         ...data,

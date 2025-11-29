@@ -95,6 +95,70 @@ export default function SettingsScreen() {
         );
     };
 
+    const handleExportToSheets = async () => {
+        if (!user) {
+            Alert.alert('Sign In Required', 'Please sign in with Google to export your data.');
+            return;
+        }
+        setIsLoading(true);
+        const result = await BackupService.exportDataToSheets();
+        setIsLoading(false);
+        if (result.success) {
+            Alert.alert('Success', 'Data exported to Google Sheets successfully!');
+        } else {
+            Alert.alert('Export Failed', result.error || 'Please try again.');
+        }
+    };
+
+    const handleImportFromSheets = async () => {
+        if (!user) {
+            Alert.alert('Sign In Required', 'Please sign in with Google to import your data.');
+            return;
+        }
+        Alert.alert(
+            'Confirm Import',
+            'This will import journal entries from your latest "BookEase Export" Google Sheet. Duplicates will be skipped. Continue?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Import',
+                    onPress: async () => {
+                        setIsLoading(true);
+                        const result = await BackupService.importDataFromSheets();
+                        setIsLoading(false);
+                        if (result.success) {
+                            Alert.alert('Success', `Imported ${result.count} new entries successfully!`);
+                        } else {
+                            Alert.alert('Import Failed', result.error || 'Please try again.');
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    const handleResetData = async () => {
+        Alert.alert(
+            'Reset Data',
+            'Are you sure you want to delete ALL journal entries and reset account balances? This cannot be undone.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete All',
+                    style: 'destructive',
+                    onPress: async () => {
+                        setIsLoading(true);
+                        const { getDBConnection, clearDatabaseData } = require('@/core/database/Database');
+                        const db = await getDBConnection();
+                        await clearDatabaseData(db);
+                        setIsLoading(false);
+                        Alert.alert('Success', 'All data has been reset.');
+                    },
+                },
+            ]
+        );
+    };
+
     return (
         <ScrollView style={styles.container}>
             <View style={styles.header}>
@@ -155,12 +219,35 @@ export default function SettingsScreen() {
                             </View>
                             {isLoading ? <ActivityIndicator size="small" color={themeColors.subText} /> : <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />}
                         </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.settingItem} onPress={handleExportToSheets} disabled={isLoading}>
+                            <View style={styles.settingLeft}>
+                                <Ionicons name="grid-outline" size={24} color={themeColors.subText} />
+                                <Text style={styles.settingText}>Export to Google Sheets</Text>
+                            </View>
+                            {isLoading ? <ActivityIndicator size="small" color={themeColors.subText} /> : <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.settingItem} onPress={handleImportFromSheets} disabled={isLoading}>
+                            <View style={styles.settingLeft}>
+                                <Ionicons name="document-text-outline" size={24} color={themeColors.subText} />
+                                <Text style={styles.settingText}>Import from Google Sheets</Text>
+                            </View>
+                            {isLoading ? <ActivityIndicator size="small" color={themeColors.subText} /> : <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />}
+                        </TouchableOpacity>
                     </>
                 )}
             </View>
 
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Data Management</Text>
+                <TouchableOpacity style={styles.settingItem} onPress={handleResetData}>
+                    <View style={styles.settingLeft}>
+                        <Ionicons name="trash-outline" size={24} color="#dc2626" />
+                        <Text style={[styles.settingText, { color: '#dc2626' }]}>Reset All Data</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />
+                </TouchableOpacity>
                 <TouchableOpacity style={styles.settingItem}>
                     <View style={styles.settingLeft}>
                         <Ionicons name="download-outline" size={24} color={themeColors.subText} />

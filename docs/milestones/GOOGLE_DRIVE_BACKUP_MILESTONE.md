@@ -10,7 +10,9 @@ Implement a robust backup and restore functionality for the BookEase application
 1.  **Google Sign-In**: Integrated `@react-native-google-signin/google-signin` for secure user authentication.
 2.  **Backup**: Uploads the local SQLite database (`bookease.db`) to the user's Google Drive (App Data folder or Drive root depending on scope).
 3.  **Restore**: Searches for the backup file, downloads it, and replaces the local database safely.
-4.  **Error Handling**: Provides specific error messages to the user (e.g., API not enabled, Network error).
+4.  **Export to Sheets**: Exports all journal entries and lines to a Google Sheet in the user's Drive for easy reporting and analysis.
+5.  **Import from Sheets**: Imports journal entries from the latest Google Sheet export, intelligently grouping lines and skipping duplicates.
+6.  **Error Handling**: Provides specific error messages to the user (e.g., API not enabled, Network error).
 
 ## Technical Challenges & Solutions
 

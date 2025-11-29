@@ -83,3 +83,9 @@ export const seedDatabase = async (db: SQLite.SQLiteDatabase) => {
     }
   }
 };
+export const clearDatabaseData = async (db: SQLite.SQLiteDatabase) => {
+  await db.execAsync('DELETE FROM journal_lines');
+  await db.execAsync('DELETE FROM journal_entries');
+  // Reset account balances to 0
+  await db.execAsync('UPDATE accounts SET balance = 0');
+};
