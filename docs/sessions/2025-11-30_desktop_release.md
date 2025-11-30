@@ -79,6 +79,7 @@ In this session, we finalized the features for Version 1.1.0, configured the pro
     *   ✅ **Persistence Verified**: Journal entries persist across app restarts.
     *   ✅ **UI Polished**: All screens support Dark Mode. Tab icons updated.
     *   ⚠️ **Tailwind**: Attempted migration to NativeWind v4 but encountered build errors (`.plugins` syntax error). Reverted Dashboard to `StyleSheet` for stability.
+    *   ✅ **Startup Optimized**: Added loading spinner and auto-redirect for Electron routing to fix "Not Found" screen.
     *   ✅ **Golden Build**: `v1.1.0` Desktop build is stable and beautiful.
 
 ### 7. Next Steps
