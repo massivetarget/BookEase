@@ -1,6 +1,7 @@
 import '../global.css';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
+import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -17,8 +18,9 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
     const colorScheme = useColorScheme();
 
-    // Fonts are missing, skipping loading for now to unblock build
-    const loaded = true;
+    const [loaded] = useFonts({
+        ...Ionicons.font,
+    });
 
     useEffect(() => {
         if (loaded) {

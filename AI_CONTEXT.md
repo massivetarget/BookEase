@@ -24,8 +24,8 @@
 2.  **Builds**:
     - Desktop build excludes `node_modules` to avoid `fsevents` errors.
     - Desktop build has code signing disabled for local testing.
-3.  **Styling**: **NativeWind (Tailwind CSS)**. Use `className` prop.
-    - Dark Mode: Use `dark:` prefix (e.g., `bg-white dark:bg-gray-900`).
+3.  **Styling**: **StyleSheet.create** (Standard).
+    - Note: NativeWind is installed but disabled due to build issues on Desktop.
 
 ## 📝 User Preferences & Workflow
 - **Git Workflow**: **Feature Branch Workflow**.
