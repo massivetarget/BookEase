@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useDashboardViewModel } from '@/core/viewmodels/useDashboardViewModel';
 
+import { useColorScheme } from 'react-native';
+
 function DashboardContent() {
     const {
         accounts,
@@ -12,65 +14,78 @@ function DashboardContent() {
         postedEntriesCount
     } = useDashboardViewModel();
 
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+
+    const theme = {
+        bg: isDark ? '#111827' : '#f3f4f6',
+        card: isDark ? '#1f2937' : '#fff',
+        text: isDark ? '#f9fafb' : '#1f2937',
+        subtext: isDark ? '#9ca3af' : '#6b7280',
+        border: isDark ? '#374151' : '#e5e7eb',
+        infoBox: isDark ? '#1e3a8a' : '#dbeafe',
+        infoText: isDark ? '#bfdbfe' : '#1e40af',
+    };
+
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView style={[styles.container, { backgroundColor: theme.bg }]}>
             <View style={styles.header}>
                 <Text style={styles.title}>BookEase Dashboard</Text>
                 <Text style={styles.subtitle}>Privacy-First Bookkeeping {Platform.OS === 'web' ? '(Web Demo)' : ''}</Text>
             </View>
 
-            <View style={styles.card}>
-                <Text style={styles.cardTitle}>Balance Sheet Summary</Text>
+            <View style={[styles.card, { backgroundColor: theme.card }]}>
+                <Text style={[styles.cardTitle, { color: theme.text }]}>Balance Sheet Summary</Text>
                 <View style={styles.row}>
-                    <Text style={styles.label}>Total Assets:</Text>
+                    <Text style={[styles.label, { color: theme.subtext }]}>Total Assets:</Text>
                     <Text style={[styles.value, styles.positive]}>
                         ${totalAssets.toFixed(2)}
                     </Text>
                 </View>
                 <View style={styles.row}>
-                    <Text style={styles.label}>Total Liabilities:</Text>
+                    <Text style={[styles.label, { color: theme.subtext }]}>Total Liabilities:</Text>
                     <Text style={[styles.value, styles.negative]}>
                         ${totalLiabilities.toFixed(2)}
                     </Text>
                 </View>
                 <View style={styles.row}>
-                    <Text style={styles.label}>Total Equity:</Text>
-                    <Text style={styles.value}>
+                    <Text style={[styles.label, { color: theme.subtext }]}>Total Equity:</Text>
+                    <Text style={[styles.value, { color: theme.text }]}>
                         ${totalEquity.toFixed(2)}
                     </Text>
                 </View>
-                <View style={[styles.row, styles.divider]}>
-                    <Text style={styles.labelBold}>Net Worth:</Text>
+                <View style={[styles.row, styles.divider, { borderTopColor: theme.border }]}>
+                    <Text style={[styles.labelBold, { color: theme.text }]}>Net Worth:</Text>
                     <Text style={[styles.valueBold, totalAssets - totalLiabilities >= 0 ? styles.positive : styles.negative]}>
                         ${(totalAssets - totalLiabilities).toFixed(2)}
                     </Text>
                 </View>
             </View>
 
-            <View style={styles.card}>
-                <Text style={styles.cardTitle}>Quick Stats</Text>
+            <View style={[styles.card, { backgroundColor: theme.card }]}>
+                <Text style={[styles.cardTitle, { color: theme.text }]}>Quick Stats</Text>
                 <View style={styles.row}>
-                    <Text style={styles.label}>Total Accounts:</Text>
-                    <Text style={styles.value}>{accounts.length}</Text>
+                    <Text style={[styles.label, { color: theme.subtext }]}>Total Accounts:</Text>
+                    <Text style={[styles.value, { color: theme.text }]}>{accounts.length}</Text>
                 </View>
                 <View style={styles.row}>
-                    <Text style={styles.label}>Active Accounts:</Text>
-                    <Text style={styles.value}>
+                    <Text style={[styles.label, { color: theme.subtext }]}>Active Accounts:</Text>
+                    <Text style={[styles.value, { color: theme.text }]}>
                         {accounts.filter(a => a.isActive === true).length}
                     </Text>
                 </View>
                 <View style={styles.row}>
-                    <Text style={styles.label}>Journal Entries:</Text>
-                    <Text style={styles.value}>{journalEntries.length}</Text>
+                    <Text style={[styles.label, { color: theme.subtext }]}>Journal Entries:</Text>
+                    <Text style={[styles.value, { color: theme.text }]}>{journalEntries.length}</Text>
                 </View>
                 <View style={styles.row}>
-                    <Text style={styles.label}>Posted Entries:</Text>
-                    <Text style={styles.value}>{postedEntriesCount}</Text>
+                    <Text style={[styles.label, { color: theme.subtext }]}>Posted Entries:</Text>
+                    <Text style={[styles.value, { color: theme.text }]}>{postedEntriesCount}</Text>
                 </View>
             </View>
 
-            <View style={styles.infoBox}>
-                <Text style={styles.infoText}>
+            <View style={[styles.infoBox, { backgroundColor: theme.infoBox }]}>
+                <Text style={[styles.infoText, { color: theme.infoText }]}>
                     💡 Tip: Start by reviewing your Chart of Accounts, then create journal entries to record transactions.
                 </Text>
             </View>
@@ -85,7 +100,6 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f3f4f6',
     },
     header: {
         backgroundColor: '#2563eb',
@@ -103,7 +117,6 @@ const styles = StyleSheet.create({
         color: '#dbeafe',
     },
     card: {
-        backgroundColor: '#fff',
         margin: 16,
         padding: 16,
         borderRadius: 12,
@@ -116,7 +129,6 @@ const styles = StyleSheet.create({
     cardTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#1f2937',
         marginBottom: 12,
     },
     row: {
@@ -126,16 +138,13 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 16,
-        color: '#6b7280',
     },
     labelBold: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#1f2937',
     },
     value: {
         fontSize: 16,
-        color: '#1f2937',
     },
     valueBold: {
         fontSize: 16,
@@ -149,12 +158,10 @@ const styles = StyleSheet.create({
     },
     divider: {
         borderTopWidth: 2,
-        borderTopColor: '#e5e7eb',
         marginTop: 8,
         paddingTop: 12,
     },
     infoBox: {
-        backgroundColor: '#dbeafe',
         margin: 16,
         padding: 16,
         borderRadius: 8,
@@ -163,7 +170,6 @@ const styles = StyleSheet.create({
     },
     infoText: {
         fontSize: 14,
-        color: '#1e40af',
         lineHeight: 20,
     },
 });

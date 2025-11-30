@@ -35,13 +35,28 @@ function getTypeColor(type: string) {
     }
 }
 
+import { useColorScheme } from 'react-native';
+
+// ... imports
+
 function JournalList({ journalEntries, onAdd, onView }) {
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+
+    const theme = {
+        bg: isDark ? '#111827' : '#f3f4f6',
+        card: isDark ? '#1f2937' : '#fff',
+        text: isDark ? '#f9fafb' : '#1f2937',
+        subtext: isDark ? '#9ca3af' : '#6b7280',
+        border: isDark ? '#374151' : '#e5e7eb',
+    };
+
     const renderJournalEntry = ({ item }) => (
-        <TouchableOpacity style={styles.entryCard} onPress={() => onView(item)}>
+        <TouchableOpacity style={[styles.entryCard, { backgroundColor: theme.card }]} onPress={() => onView(item)}>
             <View style={styles.entryHeader}>
                 <View>
-                    <Text style={styles.entryDescription}>{item.description}</Text>
-                    <Text style={styles.entryDate}>
+                    <Text style={[styles.entryDescription, { color: theme.text }]}>{item.description}</Text>
+                    <Text style={[styles.entryDate, { color: theme.subtext }]}>
                         {new Date(item.date).toLocaleDateString()}
                         {item.reference ? ` • Ref: ${item.reference}` : ''}
                     </Text>
@@ -51,28 +66,27 @@ function JournalList({ journalEntries, onAdd, onView }) {
                 </View>
             </View>
             <View style={styles.entryFooter}>
-                <Text style={styles.entryAmount}>
+                <Text style={[styles.entryAmount, { color: theme.text }]}>
                     Amount: ${item.getTotalAmount().toFixed(2)}
                 </Text>
-                <Text style={styles.entryLines}>{item.lines.length} lines</Text>
+                <Text style={[styles.entryLines, { color: theme.subtext }]}>{item.lines.length} lines</Text>
             </View>
         </TouchableOpacity>
     );
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.bg }]}>
             <FlashList<JournalEntry>
                 data={journalEntries}
                 renderItem={renderJournalEntry}
                 keyExtractor={(item) => item._id.toString()}
                 contentContainerStyle={styles.listContainer}
-                // @ts-ignore
                 estimatedItemSize={120}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        <Ionicons name="document-text-outline" size={64} color="#d1d5db" />
-                        <Text style={styles.emptyText}>No journal entries yet</Text>
-                        <Text style={styles.emptySubtext}>Tap + to create your first entry</Text>
+                        <Ionicons name="document-text-outline" size={64} color={theme.border} />
+                        <Text style={[styles.emptyText, { color: theme.subtext }]}>No journal entries yet</Text>
+                        <Text style={[styles.emptySubtext, { color: theme.border }]}>Tap + to create your first entry</Text>
                     </View>
                 }
             />
@@ -94,6 +108,20 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
     ]);
     const [accountPickerVisible, setAccountPickerVisible] = useState(false);
     const [currentLineIndex, setCurrentLineIndex] = useState<number | null>(null);
+
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+
+    const theme = {
+        bg: isDark ? '#1f2937' : '#fff',
+        text: isDark ? '#f9fafb' : '#1f2937',
+        subtext: isDark ? '#9ca3af' : '#6b7280',
+        border: isDark ? '#374151' : '#e5e7eb',
+        inputBg: isDark ? '#374151' : '#fff',
+        inputBorder: isDark ? '#4b5563' : '#d1d5db',
+        lineItemBg: isDark ? '#111827' : '#f9fafb',
+        buttonSecondary: isDark ? '#374151' : '#f3f4f6',
+    };
 
     const getTotalDebits = () => lines.reduce((sum, line) => sum + (parseFloat(line.debit) || 0), 0);
     const getTotalCredits = () => lines.reduce((sum, line) => sum + (parseFloat(line.credit) || 0), 0);
@@ -165,72 +193,112 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
     };
 
     const renderLine = ({ item, index }: { item: LineItem; index: number }) => (
-        <View style={styles.lineItem}>
+        <View style={[styles.lineItem, { backgroundColor: theme.lineItemBg, borderColor: theme.border }]}>
             <View style={styles.lineHeader}>
-                <Text style={styles.lineNumber}>Line {index + 1}</Text>
+                <Text style={[styles.lineNumber, { color: theme.subtext }]}>Line {index + 1}</Text>
                 {lines.length > 2 && (
                     <TouchableOpacity onPress={() => removeLine(item.id)}>
                         <Ionicons name="trash-outline" size={20} color="#dc2626" />
                     </TouchableOpacity>
                 )}
             </View>
-            <TouchableOpacity style={styles.accountSelector} onPress={() => openAccountPicker(index)}>
-                <Text style={item.accountName ? styles.accountSelected : styles.accountPlaceholder}>
+            <TouchableOpacity
+                style={[styles.accountSelector, { backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}
+                onPress={() => openAccountPicker(index)}
+            >
+                <Text style={item.accountName ? [styles.accountSelected, { color: theme.text }] : [styles.accountPlaceholder, { color: theme.subtext }]}>
                     {item.accountName || 'Select Account'}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color="#6b7280" />
+                <Ionicons name="chevron-down" size={20} color={theme.subtext} />
             </TouchableOpacity>
             <View style={styles.amountRow}>
                 <View style={styles.amountInput}>
-                    <Text style={styles.amountLabel}>Debit</Text>
-                    <TextInput style={styles.input} value={item.debit} onChangeText={(v) => updateLine(item.id, 'debit', v)} keyboardType="decimal-pad" placeholder="0.00" />
+                    <Text style={[styles.amountLabel, { color: theme.subtext }]}>Debit</Text>
+                    <TextInput
+                        style={[styles.input, { color: theme.text, backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}
+                        value={item.debit}
+                        onChangeText={(v) => updateLine(item.id, 'debit', v)}
+                        keyboardType="decimal-pad"
+                        placeholder="0.00"
+                        placeholderTextColor={theme.subtext}
+                    />
                 </View>
                 <View style={styles.amountInput}>
-                    <Text style={styles.amountLabel}>Credit</Text>
-                    <TextInput style={styles.input} value={item.credit} onChangeText={(v) => updateLine(item.id, 'credit', v)} keyboardType="decimal-pad" placeholder="0.00" />
+                    <Text style={[styles.amountLabel, { color: theme.subtext }]}>Credit</Text>
+                    <TextInput
+                        style={[styles.input, { color: theme.text, backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}
+                        value={item.credit}
+                        onChangeText={(v) => updateLine(item.id, 'credit', v)}
+                        keyboardType="decimal-pad"
+                        placeholder="0.00"
+                        placeholderTextColor={theme.subtext}
+                    />
                 </View>
             </View>
-            <TextInput style={styles.input} value={item.description} onChangeText={(v) => updateLine(item.id, 'description', v)} placeholder="Line description (optional)" />
+            <TextInput
+                style={[styles.input, { color: theme.text, backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}
+                value={item.description}
+                onChangeText={(v) => updateLine(item.id, 'description', v)}
+                placeholder="Line description (optional)"
+                placeholderTextColor={theme.subtext}
+            />
         </View>
     );
 
     return (
         <Modal visible={visible} animationType="slide">
-            <View style={styles.modalContainer}>
-                <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>New Journal Entry</Text>
+            <View style={[styles.modalContainer, { backgroundColor: theme.bg }]}>
+                <View style={[styles.modalHeader, { backgroundColor: theme.bg, borderBottomColor: theme.border }]}>
+                    <Text style={[styles.modalTitle, { color: theme.text }]}>New Journal Entry</Text>
                     <TouchableOpacity onPress={onClose}>
-                        <Ionicons name="close" size={28} color="#6b7280" />
+                        <Ionicons name="close" size={28} color={theme.subtext} />
                     </TouchableOpacity>
                 </View>
                 <ScrollView style={styles.modalBody}>
-                    <Text style={styles.label}>Date *</Text>
-                    <TextInput style={styles.input} value={date} onChangeText={setDate} placeholder="YYYY-MM-DD" />
-                    <Text style={styles.label}>Description *</Text>
-                    <TextInput style={styles.input} value={description} onChangeText={setDescription} placeholder="e.g., Purchase of office supplies" />
-                    <Text style={styles.label}>Reference</Text>
-                    <TextInput style={styles.input} value={reference} onChangeText={setReference} placeholder="Invoice #, Receipt #, etc." />
+                    <Text style={[styles.label, { color: theme.text }]}>Date *</Text>
+                    <TextInput
+                        style={[styles.input, { color: theme.text, backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}
+                        value={date}
+                        onChangeText={setDate}
+                        placeholder="YYYY-MM-DD"
+                        placeholderTextColor={theme.subtext}
+                    />
+                    <Text style={[styles.label, { color: theme.text }]}>Description *</Text>
+                    <TextInput
+                        style={[styles.input, { color: theme.text, backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}
+                        value={description}
+                        onChangeText={setDescription}
+                        placeholder="e.g., Purchase of office supplies"
+                        placeholderTextColor={theme.subtext}
+                    />
+                    <Text style={[styles.label, { color: theme.text }]}>Reference</Text>
+                    <TextInput
+                        style={[styles.input, { color: theme.text, backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}
+                        value={reference}
+                        onChangeText={setReference}
+                        placeholder="Invoice #, Receipt #, etc."
+                        placeholderTextColor={theme.subtext}
+                    />
                     <View style={styles.linesHeader}>
-                        <Text style={styles.linesTitle}>Journal Lines</Text>
+                        <Text style={[styles.linesTitle, { color: theme.text }]}>Journal Lines</Text>
                         <TouchableOpacity onPress={addLine} style={styles.addLineButton}>
                             <Ionicons name="add-circle-outline" size={20} color="#2563eb" />
                             <Text style={styles.addLineText}>Add Line</Text>
                         </TouchableOpacity>
                     </View>
                     <FlashList<LineItem> data={lines} renderItem={renderLine} keyExtractor={(item) => item.id} scrollEnabled={false}
-                        // @ts-ignore
                         estimatedItemSize={200} />
                     <View style={[styles.balanceCard, isBalanced() ? styles.balanceCardGood : styles.balanceCardBad]}>
                         <View style={styles.balanceRow}>
-                            <Text style={styles.balanceLabel}>Total Debits:</Text>
-                            <Text style={styles.balanceValue}>${getTotalDebits().toFixed(2)}</Text>
+                            <Text style={[styles.balanceLabel, { color: '#374151' }]}>Total Debits:</Text>
+                            <Text style={[styles.balanceValue, { color: '#374151' }]}>${getTotalDebits().toFixed(2)}</Text>
                         </View>
                         <View style={styles.balanceRow}>
-                            <Text style={styles.balanceLabel}>Total Credits:</Text>
-                            <Text style={styles.balanceValue}>${getTotalCredits().toFixed(2)}</Text>
+                            <Text style={[styles.balanceLabel, { color: '#374151' }]}>Total Credits:</Text>
+                            <Text style={[styles.balanceValue, { color: '#374151' }]}>${getTotalCredits().toFixed(2)}</Text>
                         </View>
                         <View style={[styles.balanceRow, styles.balanceDivider]}>
-                            <Text style={styles.balanceLabelBold}>Difference:</Text>
+                            <Text style={[styles.balanceLabelBold, { color: '#1f2937' }]}>Difference:</Text>
                             <Text style={[styles.balanceValueBold, isBalanced() ? styles.balanced : styles.unbalanced]}>
                                 ${Math.abs(getTotalDebits() - getTotalCredits()).toFixed(2)}
                             </Text>
@@ -248,9 +316,9 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
                         )}
                     </View>
                 </ScrollView>
-                <View style={styles.modalFooter}>
-                    <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={handleSaveDraft}>
-                        <Text style={styles.buttonSecondaryText}>Save Draft</Text>
+                <View style={[styles.modalFooter, { backgroundColor: theme.bg, borderTopColor: theme.border }]}>
+                    <TouchableOpacity style={[styles.button, styles.buttonSecondary, { backgroundColor: theme.buttonSecondary }]} onPress={handleSaveDraft}>
+                        <Text style={[styles.buttonSecondaryText, { color: theme.subtext }]}>Save Draft</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.button, styles.buttonPrimary, !isBalanced() && styles.buttonDisabled]} onPress={handlePost} disabled={!isBalanced()}>
                         <Text style={styles.buttonPrimaryText}>Post Entry</Text>
@@ -259,26 +327,25 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
             </View>
             <Modal visible={accountPickerVisible} animationType="slide" transparent>
                 <View style={styles.pickerOverlay}>
-                    <View style={styles.pickerContent}>
-                        <View style={styles.pickerHeader}>
-                            <Text style={styles.pickerTitle}>Select Account ({accounts.length})</Text>
+                    <View style={[styles.pickerContent, { backgroundColor: theme.bg }]}>
+                        <View style={[styles.pickerHeader, { borderBottomColor: theme.border }]}>
+                            <Text style={[styles.pickerTitle, { color: theme.text }]}>Select Account ({accounts.length})</Text>
                             <TouchableOpacity onPress={() => setAccountPickerVisible(false)}>
-                                <Ionicons name="close" size={28} color="#6b7280" />
+                                <Ionicons name="close" size={28} color={theme.subtext} />
                             </TouchableOpacity>
                         </View>
                         <FlashList<Account>
                             data={accounts}
                             renderItem={({ item }) => (
-                                <TouchableOpacity style={styles.accountOption} onPress={() => selectAccount(item)}>
-                                    <Text style={styles.accountCode}>{item.code}</Text>
-                                    <Text style={styles.accountName}>{item.name}</Text>
+                                <TouchableOpacity style={[styles.accountOption, { borderBottomColor: theme.border }]} onPress={() => selectAccount(item)}>
+                                    <Text style={[styles.accountCode, { color: theme.subtext }]}>{item.code}</Text>
+                                    <Text style={[styles.accountName, { color: theme.text }]}>{item.name}</Text>
                                     <Text style={[styles.accountType, { color: getTypeColor(item.type) }]}>
                                         {item.type}
                                     </Text>
                                 </TouchableOpacity>
                             )}
                             keyExtractor={(item) => item._id.toString()}
-                            // @ts-ignore
                             estimatedItemSize={70}
                         />
                     </View>
@@ -300,6 +367,17 @@ export default function JournalScreen() {
         actions
     } = useJournalViewModel();
 
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+
+    const theme = {
+        bg: isDark ? '#1f2937' : '#fff',
+        text: isDark ? '#f9fafb' : '#1f2937',
+        subtext: isDark ? '#9ca3af' : '#6b7280',
+        border: isDark ? '#374151' : '#e5e7eb',
+        card: isDark ? '#111827' : '#f9fafb',
+    };
+
     return (
         <>
             <JournalList journalEntries={journalEntries} onAdd={() => setModalVisible(true)} onView={actions.viewEntry} />
@@ -313,71 +391,66 @@ export default function JournalScreen() {
             {/* View Modal Logic Here */}
             <Modal visible={viewModalVisible} animationType="slide" transparent>
                 <View style={styles.pickerOverlay}>
-                    <View style={styles.pickerContent}>
-                        <View style={styles.pickerHeader}>
-                            <Text style={styles.pickerTitle}>Journal Entry Details</Text>
+                    <View style={[styles.pickerContent, { backgroundColor: theme.bg }]}>
+                        <View style={[styles.pickerHeader, { borderBottomColor: theme.border }]}>
+                            <Text style={[styles.pickerTitle, { color: theme.text }]}>Journal Entry Details</Text>
                             <TouchableOpacity onPress={() => setViewModalVisible(false)}>
-                                <Ionicons name="close" size={28} color="#6b7280" />
+                                <Ionicons name="close" size={28} color={theme.subtext} />
                             </TouchableOpacity>
                         </View>
                         {selectedEntry && (
                             <ScrollView style={styles.viewBody}>
-                                <View style={styles.viewRow}>
-                                    <Text style={styles.viewLabel}>Date:</Text>
-                                    <Text style={styles.viewValue}>
+                                <View style={[styles.viewRow, { borderBottomColor: theme.border }]}>
+                                    <Text style={[styles.viewLabel, { color: theme.subtext }]}>Date:</Text>
+                                    <Text style={[styles.viewValue, { color: theme.text }]}>
                                         {new Date(selectedEntry.date).toLocaleDateString()}
                                     </Text>
                                 </View>
-                                <View style={styles.viewRow}>
-                                    <Text style={styles.viewLabel}>Description:</Text>
-                                    <Text style={styles.viewValue}>{selectedEntry.description}</Text>
+                                <View style={[styles.viewRow, { borderBottomColor: theme.border }]}>
+                                    <Text style={[styles.viewLabel, { color: theme.subtext }]}>Description:</Text>
+                                    <Text style={[styles.viewValue, { color: theme.text }]}>{selectedEntry.description}</Text>
                                 </View>
                                 {selectedEntry.reference && (
-                                    <View style={styles.viewRow}>
-                                        <Text style={styles.viewLabel}>Reference:</Text>
-                                        <Text style={styles.viewValue}>{selectedEntry.reference}</Text>
+                                    <View style={[styles.viewRow, { borderBottomColor: theme.border }]}>
+                                        <Text style={[styles.viewLabel, { color: theme.subtext }]}>Reference:</Text>
+                                        <Text style={[styles.viewValue, { color: theme.text }]}>{selectedEntry.reference}</Text>
                                     </View>
                                 )}
-                                <View style={styles.viewRow}>
-                                    <Text style={styles.viewLabel}>Status:</Text>
+                                <View style={[styles.viewRow, { borderBottomColor: theme.border }]}>
+                                    <Text style={[styles.viewLabel, { color: theme.subtext }]}>Status:</Text>
                                     <View style={[styles.statusBadge, selectedEntry.status === 'Posted' ? styles.postedBadge : styles.draftBadge]}>
                                         <Text style={styles.statusText}>{selectedEntry.status}</Text>
                                     </View>
                                 </View>
 
-                                <Text style={styles.viewSectionTitle}>Lines:</Text>
+                                <Text style={[styles.viewSectionTitle, { color: theme.text }]}>Lines:</Text>
                                 {selectedEntry.lines.map((line, index) => {
-                                    // Note: In MVVM, the lines should probably already have account names populated
-                                    // or we should use a helper. For now, we might not have easy access to the account object
-                                    // if it's just an ID.
-                                    // The ViewModel could enrich this data.
-                                    // For simplicity in this refactor, we'll try to find it in the accounts list passed to the view.
                                     const account = accounts.find(a => a._id.toString() === line.accountId.toString());
                                     return (
-                                        <View key={line._id.toString()} style={styles.viewLineCard}>
-                                            <Text style={styles.viewLineNumber}>Line {index + 1}</Text>
-                                            <Text style={styles.viewLineAccount}>
+                                        <View key={line._id.toString()} style={[styles.viewLineCard, { backgroundColor: theme.card }]}>
+                                            <Text style={[styles.viewLineNumber, { color: theme.subtext }]}>Line {index + 1}</Text>
+                                            <Text style={[styles.viewLineAccount, { color: theme.text }]}>
                                                 {account ? `${account.code} - ${account.name}` : 'Unknown Account'}
                                             </Text>
                                             <View style={styles.viewLineAmounts}>
-                                                <Text style={styles.viewLineAmount}>
+                                                <Text style={[styles.viewLineAmount, { color: theme.text }]}>
                                                     Debit: ${line.debit.toFixed(2)}
                                                 </Text>
-                                                <Text style={styles.viewLineAmount}>
+                                                <Text style={[styles.viewLineAmount, { color: theme.text }]}>
                                                     Credit: ${line.credit.toFixed(2)}
                                                 </Text>
                                             </View>
                                             {line.description && (
-                                                <Text style={styles.viewLineDesc}>{line.description}</Text>
+                                                <Text style={[styles.viewLineDesc, { color: theme.subtext }]}>{line.description}</Text>
                                             )}
                                         </View>
                                     );
                                 })}
 
                                 <View style={styles.viewTotals}>
-                                    <View style={styles.viewRow}>
-                                        <Text style={styles.viewLabelBold}>Total:</Text>
-                                        <Text style={styles.viewValueBold}>
+                                    <View style={[styles.viewRow, { borderBottomColor: 'transparent' }]}>
+                                        <Text style={[styles.viewLabelBold, { color: theme.text }]}>Total:</Text>
+                                        <Text style={[styles.viewValueBold, { color: theme.text }]}>
                                             ${selectedEntry.getTotalAmount().toFixed(2)}
                                         </Text>
                                     </View>
