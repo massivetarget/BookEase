@@ -1,13 +1,4 @@
-# Session Log: November 30, 2025
 
-**Topic**: Version 1.1.0 Release & Desktop Build Setup
-
-## 📝 Summary
-In this session, we finalized the features for Version 1.1.0, configured the project for Desktop builds (Windows), and established a robust git workflow for future development.
-
-## ⏱️ Timeline & Actions
-
-### 1. Version Bump (v1.1.0)
 # Session Log: November 30, 2025
 
 **Topic**: Version 1.1.0 Release & Desktop Build Setup

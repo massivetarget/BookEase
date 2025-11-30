@@ -45,7 +45,7 @@
 - **Documentation**: `docs/`.
 
 ## 🔜 Backlog / Todo
-1.  **Refactor UI to Tailwind**: Convert Accounts, Journal, Reports, and Settings screens.
-2.  **UI Settings Persistence**: Implement `localStorage` for persisting Theme and other UI settings on Desktop.
+1.  **UI Settings Persistence**: Implement `localStorage` for persisting Theme and other UI settings on Desktop.
+2.  **Tailwind Migration**: Paused. NativeWind v4 build issues need resolution before proceeding.
 3.  **Fix Android Build**: Resolve Gradle/JDK issues to get a working APK.
 4.  **Phase 2 Features**: Reports, Charts, PDF Export.
