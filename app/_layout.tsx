@@ -7,7 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
-import { Platform, View, Text, useColorScheme } from 'react-native';
+import { Platform, View, Text, useColorScheme, ActivityIndicator } from 'react-native';
 
 import { ServiceProvider, useServices } from '@/core/services/ServiceContext';
 import { RepositoryFactory } from '@/core/factories/RepositoryFactory';
@@ -79,7 +79,12 @@ function ServiceInitializer({ children }: { children: React.ReactNode }) {
     }
 
     if (!ready) {
-        return null;
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#2563eb" />
+                <Text style={{ marginTop: 10, color: '#6b7280' }}>Starting up...</Text>
+            </View>
+        );
     }
 
     return <>{children}</>;
