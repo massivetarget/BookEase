@@ -8,11 +8,7 @@ import 'react-native-reanimated';
 import { Platform, View, Text, useColorScheme } from 'react-native';
 
 import { ServiceProvider, useServices } from '@/core/services/ServiceContext';
-import { MockAccountRepository } from '@/core/repositories/mock/MockAccountRepository';
-import { MockJournalRepository } from '@/core/repositories/mock/MockJournalRepository';
-import { SQLiteAccountRepository } from '@/core/repositories/sqlite/SQLiteAccountRepository';
-import { SQLiteJournalRepository } from '@/core/repositories/sqlite/SQLiteJournalRepository';
-import { getDBConnection, createTables, seedDatabase } from '@/core/database/Database';
+import { RepositoryFactory } from '@/core/factories/RepositoryFactory';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -56,16 +52,13 @@ function ServiceInitializer({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const init = async () => {
             try {
-                if (Platform.OS === 'web') {
-                    setAccountRepository(new MockAccountRepository());
-                    setJournalRepository(new MockJournalRepository());
-                } else {
-                    const db = await getDBConnection();
-                    await createTables(db);
-                    await seedDatabase(db);
-                    setAccountRepository(new SQLiteAccountRepository(db));
-                    setJournalRepository(new SQLiteJournalRepository(db));
-                }
+                await RepositoryFactory.initializeDatabase();
+                const accountRepo = await RepositoryFactory.createAccountRepository();
+                const journalRepo = await RepositoryFactory.createJournalRepository();
+
+                setAccountRepository(accountRepo);
+                setJournalRepository(journalRepo);
+
                 setReady(true);
             } catch (e: any) {
                 setError(e.message);

@@ -12,7 +12,7 @@
 - **Active Branch**: `feature/desktop-improvements`
 - **Stable Branch**: `main` (Last tag: `v1.1.0`)
 - **Build Status**:
-  - ✅ **Desktop (Windows)**: Working. Built via `npm run build:desktop`.
+  - ✅ **Desktop (Windows)**: Fully Functional & Persistent. Built via `npm run build:desktop`.
   - ✅ **Web**: Working (View-only).
   - ⚠️ **Android**: Build environment issues (Gradle/JDK). Requires Android Studio or EAS Build.
   - ⚠️ **iOS**: Untested (Requires Mac).
@@ -20,7 +20,7 @@
 ## ⚙️ Critical Technical Constraints
 1.  **Database Duality**:
     - **Mobile**: Uses `expo-sqlite` (Native Module). **Cannot run in Expo Go**. Must use Custom Dev Client.
-    - **Web/Desktop**: Uses a **Mock/Web Adapter** (or limited web-SQL if configured). *Note: Verify if SQLite is truly working on Desktop or if it's falling back to mock data.*
+    - **Web/Desktop**: Uses **IndexedDB** (`WebAccountRepository`, `WebJournalRepository`). Data persists in browser/Electron storage.
 2.  **Builds**:
     - Desktop build excludes `node_modules` to avoid `fsevents` errors.
     - Desktop build has code signing disabled for local testing.
@@ -43,6 +43,7 @@
 - **Documentation**: `docs/`.
 
 ## 🔜 Backlog / Todo
-1.  **Verify Desktop Persistence**: Confirm if data persists on Desktop restart (Electron `localStorage` vs SQLite).
+1.  **UI Settings Persistence**: Implement `localStorage` for persisting Theme and other UI settings on Desktop.
 2.  **Fix Android Build**: Resolve Gradle/JDK issues to get a working APK.
 3.  **Phase 2 Features**: Reports, Charts, PDF Export.
+

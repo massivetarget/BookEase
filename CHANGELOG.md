@@ -30,6 +30,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Duplicate Imports**: Implemented logic to prevent duplicate journal entries during import.
 - **CSV Parsing**: Fixed "Account not found" errors caused by commas in account names (e.g., "Company, Inc.").
 - **Build Scripts**: Fixed Windows environment variable issues in build scripts.
+- **Desktop Stability**:
+  - Fixed blank screen on launch by enforcing relative paths.
+  - Fixed `FlashList` crashes by implementing robust ID mapping for IndexedDB.
+  - Fixed Accounts screen layout stretching and added Dark Mode support.
+  - Implemented `WebAccountRepository` and `WebJournalRepository` using IndexedDB for persistent desktop data.
 
 ## [1.0.0] - 2025-11-26
 

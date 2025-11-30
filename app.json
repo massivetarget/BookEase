@@ -18,6 +18,8 @@
     },
     "scheme": "bookeaseapp",
     "web": {
+      "bundler": "metro",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "extra": {
@@ -27,6 +29,9 @@
       "eas": {
         "projectId": "5519018d-97de-4288-9bc4-f4abd11dec4b"
       }
+    },
+    "experiments": {
+      "baseUrl": "./"
     }
   }
 }

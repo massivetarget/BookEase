@@ -1,7 +1,7 @@
 {
   "name": "bookeaseapp",
   "version": "1.1.0",
-  "main": "electron/main.js",
+  "main": "index.js",
   "description": "Privacy-First Double-Entry Bookkeeping Application",
   "author": "BookEase Team",
   "scripts": {
@@ -28,6 +28,7 @@
     "expo-splash-screen": "~31.0.11",
     "expo-sqlite": "~16.0.9",
     "expo-status-bar": "~3.0.8",
+    "idb": "^8.0.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
@@ -47,7 +48,7 @@
     "@types/uuid": "^10.0.0",
     "babel-plugin-module-resolver": "^5.0.2",
     "cross-env": "^10.1.0",
-    "electron": "^39.2.3",
+    "electron": "39.2.3",
     "electron-builder": "^26.0.12",
     "typescript": "~5.9.2"
   },
@@ -56,6 +57,9 @@
   "build": {
     "appId": "com.bookease.app",
     "productName": "BookEase",
+    "extraMetadata": {
+      "main": "electron/main.js"
+    },
     "directories": {
       "output": "dist-electron"
     },
@@ -63,7 +67,8 @@
       "dist/**/*",
       "electron/**/*",
       "package.json",
-      "!node_modules/**/*"
+      "!node_modules/**/*",
+      "!**/node_modules/fsevents/**/*"
     ],
     "win": {
       "target": "nsis",
