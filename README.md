@@ -38,7 +38,7 @@ npx expo run:android  # or run:ios
 
 ## ✨ Features
 
-### ✅ Implemented (Phase 1)
+### ✅ Implemented (Phase 1 & 2)
 - **Double-Entry Accounting** with real-time validation
 - **Chart of Accounts** with 40+ pre-configured accounts
 - **Journal Entry Management** (Draft & Posted)
@@ -46,12 +46,13 @@ npx expo run:android  # or run:ios
 - **Cross-Platform**: Android, iOS, Windows, macOS, Linux
 - **Local-First**: All data stored on device with Realm
 - **Automatic Balance Updates** when entries are posted
+- **Google Drive Encrypted Backups** (New in v1.1.0)
+- **Google Sheets Import/Export** (New in v1.1.0)
 
-### 🚧 Coming Soon (Phase 2+)
+### 🚧 Coming Soon (Phase 3+)
 - Reports & Analytics (General Ledger, Trial Balance, P&L, Balance Sheet)
 - PDF Export
 - P2P Device Sync
-- Google Drive Encrypted Backups
 - Dark Mode
 - PIN/Biometric Authentication
 
@@ -219,9 +220,9 @@ Built with:
 
 ---
 
-**Version**: 1.0.0 (Phase 1 Complete)  
-**Last Updated**: November 26, 2025  
-**Status**: ✅ Production Ready for Core Features
+**Version**: 1.1.0 (Phase 2 Complete)  
+**Last Updated**: November 30, 2025  
+**Status**: ✅ Production Ready for Core Features & Cloud Backup
 
 ---
 
