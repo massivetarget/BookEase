@@ -72,10 +72,13 @@ In this session, we finalized the features for Version 1.1.0, configured the pro
 *   **Issue 3: Accounts Screen Layout & Dark Mode**:
     *   **Cause**: Flexbox stretching issue in filter buttons and hardcoded light colors.
     *   **Fix**: Added `flexGrow: 0` to filter ScrollView and implemented `useColorScheme` for dynamic Dark/Light theming.
+*   **Issue 4: Inconsistent Theming (All Tabs)**:
+    *   **Cause**: Dashboard, Journal, and Reports were hardcoded to Light Mode.
+    *   **Fix**: Implemented `useColorScheme` and dynamic theming across all tabs (Dashboard, Journal, Reports).
 *   **Outcome**:
     *   ✅ **Persistence Verified**: Journal entries persist across app restarts.
-    *   ✅ **UI Polished**: Accounts screen looks correct in Dark Mode.
-    *   ✅ **Golden Build**: `v1.1.0` Desktop build is stable.
+    *   ✅ **UI Polished**: All screens (Dashboard, Accounts, Journal, Reports, Settings) support Dark Mode.
+    *   ✅ **Golden Build**: `v1.1.0` Desktop build is stable and beautiful.
 
 ### 7. Next Steps
 1.  **Implement LocalStorage for UI Settings**: Add logic to save/load UI settings (Theme, etc.) using `localStorage`.

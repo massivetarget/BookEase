@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Restore functionality from Google Drive.
 - **Data Reset**: Added "Reset All Data" feature in Settings to wipe local database and start fresh.
 - **UI Improvements**: 
+  - **Dark Mode**: Full Dark Mode support across Dashboard, Accounts, Journal, Reports, and Settings.
   - Auto-refresh Journal list on focus.
   - Added loading indicators for backup/restore operations.
 
