@@ -77,7 +77,8 @@ In this session, we finalized the features for Version 1.1.0, configured the pro
     *   **Fix**: Implemented `useColorScheme` and dynamic theming across all tabs (Dashboard, Journal, Reports).
 *   **Outcome**:
     *   ✅ **Persistence Verified**: Journal entries persist across app restarts.
-    *   ✅ **UI Polished**: All screens support Dark Mode. Tab icons updated to be more semantic and theme-aware.
+    *   ✅ **UI Polished**: All screens support Dark Mode. Tab icons updated.
+    *   ⚠️ **Tailwind**: Attempted migration to NativeWind v4 but encountered build errors (`.plugins` syntax error). Reverted Dashboard to `StyleSheet` for stability.
     *   ✅ **Golden Build**: `v1.1.0` Desktop build is stable and beautiful.
 
 ### 7. Next Steps
