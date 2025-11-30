@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-google-signin/google-signin": "^16.0.0",
     "@shopify/flash-list": "2.0.2",
     "expo": "^54.0.25",
@@ -70,8 +71,7 @@
       "dist/**/*",
       "electron/**/*",
       "package.json",
-      "!node_modules/**/*",
-      "!**/node_modules/fsevents/**/*"
+      "!node_modules"
     ],
     "win": {
       "target": "nsis",

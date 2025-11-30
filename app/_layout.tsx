@@ -1,5 +1,5 @@
 import '../global.css';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
@@ -7,17 +7,30 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
-import { Platform, View, Text, useColorScheme, ActivityIndicator } from 'react-native';
+import { Platform, View, Text, ActivityIndicator } from 'react-native';
 
 import { ServiceProvider, useServices } from '@/core/services/ServiceContext';
 import { RepositoryFactory } from '@/core/factories/RepositoryFactory';
+import { ThemeProvider, useTheme } from '@/core/contexts/ThemeContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-    const colorScheme = useColorScheme();
+function RootLayoutContent() {
+    const { effectiveColorScheme } = useTheme();
 
+    return (
+        <NavigationThemeProvider value={effectiveColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style={effectiveColorScheme === 'dark' ? 'light' : 'dark'} />
+        </NavigationThemeProvider>
+    );
+}
+
+export default function RootLayout() {
     const [loaded] = useFonts({
         ...Ionicons.font,
     });
@@ -35,12 +48,8 @@ export default function RootLayout() {
     return (
         <ServiceProvider>
             <ServiceInitializer>
-                <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                    <Stack>
-                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                        <Stack.Screen name="+not-found" />
-                    </Stack>
-                    <StatusBar style="auto" />
+                <ThemeProvider>
+                    <RootLayoutContent />
                 </ThemeProvider>
             </ServiceInitializer>
         </ServiceProvider>
