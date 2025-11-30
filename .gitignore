@@ -53,4 +53,5 @@ buck-out/
 .expo/
 web-build/
 dist/
+dist-electron/
 android/app/build

@@ -1,13 +1,17 @@
 {
   "name": "bookeaseapp",
   "version": "1.1.0",
+  "main": "electron/main.js",
+  "description": "Privacy-First Double-Entry Bookkeeping Application",
+  "author": "BookEase Team",
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "desktop": "electron electron/main.js",
-    "electron:dev": "electron electron/main.js"
+    "electron:dev": "electron electron/main.js",
+    "build:desktop": "npx expo export -p web && npx electron-builder --win"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -44,8 +48,33 @@
     "babel-plugin-module-resolver": "^5.0.2",
     "cross-env": "^10.1.0",
     "electron": "^39.2.3",
+    "electron-builder": "^26.0.12",
     "typescript": "~5.9.2"
   },
   "license": "Apache-2.0",
-  "private": true
+  "private": true,
+  "build": {
+    "appId": "com.bookease.app",
+    "productName": "BookEase",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json",
+      "!node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "verifyUpdateCodeSignature": false,
+      "signAndEditExecutable": false
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
 }

@@ -241,14 +241,13 @@ npx expo run:ios --configuration Release
 
 #### Windows
 ```bash
-# Install electron-builder
-npm install --save-dev electron-builder
-
-# Build for Windows
-npx electron-builder --win
+# Build for Windows (creates Installer and Portable exe)
+npm run build:desktop
 ```
 
-Output: `dist/BookEase Setup.exe`
+Output:
+- Installer: `dist-electron/BookEase Setup 1.1.0.exe`
+- Portable: `dist-electron/win-unpacked/BookEase.exe`
 
 #### macOS
 ```bash
