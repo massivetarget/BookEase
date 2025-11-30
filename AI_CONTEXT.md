@@ -9,7 +9,7 @@
 - **Current Version**: v1.1.0 (Tagged)
 
 ## 🚧 Current State (as of Nov 30, 2025)
-- **Active Branch**: `feature/desktop-improvements`
+- **Active Branch**: `feature/tailwind-ui`
 - **Stable Branch**: `main` (Last tag: `v1.1.0`)
 - **Build Status**:
   - ✅ **Desktop (Windows)**: Fully Functional & Persistent. Built via `npm run build:desktop`.
@@ -24,6 +24,8 @@
 2.  **Builds**:
     - Desktop build excludes `node_modules` to avoid `fsevents` errors.
     - Desktop build has code signing disabled for local testing.
+3.  **Styling**: **NativeWind (Tailwind CSS)**. Use `className` prop.
+    - Dark Mode: Use `dark:` prefix (e.g., `bg-white dark:bg-gray-900`).
 
 ## 📝 User Preferences & Workflow
 - **Git Workflow**: **Feature Branch Workflow**.
@@ -43,7 +45,7 @@
 - **Documentation**: `docs/`.
 
 ## 🔜 Backlog / Todo
-1.  **UI Settings Persistence**: Implement `localStorage` for persisting Theme and other UI settings on Desktop.
-2.  **Fix Android Build**: Resolve Gradle/JDK issues to get a working APK.
-3.  **Phase 2 Features**: Reports, Charts, PDF Export.
-
+1.  **Refactor UI to Tailwind**: Convert Accounts, Journal, Reports, and Settings screens.
+2.  **UI Settings Persistence**: Implement `localStorage` for persisting Theme and other UI settings on Desktop.
+3.  **Fix Android Build**: Resolve Gradle/JDK issues to get a working APK.
+4.  **Phase 2 Features**: Reports, Charts, PDF Export.
