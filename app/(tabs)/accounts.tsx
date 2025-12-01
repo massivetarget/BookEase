@@ -35,8 +35,6 @@ const getTypeColor = (accountType: string) => {
 
 import { useTheme } from '@/core/contexts/ThemeContext';
 
-// ... (imports remain same)
-
 function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearchQuery, filterType, setFilterType, openAddModal }) {
     const { effectiveColorScheme } = useTheme();
     const isDark = effectiveColorScheme === 'dark';

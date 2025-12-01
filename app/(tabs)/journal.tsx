@@ -37,8 +37,6 @@ function getTypeColor(type: string) {
 
 import { useTheme } from '@/core/contexts/ThemeContext';
 
-// ... imports
-
 function JournalList({ journalEntries, onAdd, onView }) {
     const { effectiveColorScheme } = useTheme();
     const isDark = effectiveColorScheme === 'dark';

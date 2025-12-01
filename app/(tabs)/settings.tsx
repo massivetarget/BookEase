@@ -35,9 +35,12 @@ export default function SettingsScreen() {
         setUser(currentUser);
     };
 
-    const handleThemeChange = (mode: 'light' | 'dark' | 'system') => {
-        setTheme(mode);
-        setThemeModalVisible(false);
+    const handleThemeChange = async (mode: 'light' | 'dark' | 'system') => {
+        try {
+            await setTheme(mode);
+        } finally {
+            setThemeModalVisible(false);
+        }
     };
 
     const handleGoogleSignIn = async () => {
@@ -182,8 +185,6 @@ export default function SettingsScreen() {
                     </View>
                 </TouchableOpacity>
             </View>
-
-            {/* ... */}
 
             <Modal visible={themeModalVisible} transparent animationType="fade">
                 <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setThemeModalVisible(false)}>

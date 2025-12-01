@@ -6,7 +6,7 @@ type Theme = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {
     theme: Theme;
-    setTheme: (theme: Theme) => void;
+    setTheme: (theme: Theme) => Promise<void>;
     effectiveColorScheme: 'light' | 'dark';
 }
 
@@ -34,7 +34,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const setTheme = async (newTheme: Theme) => {
+    const setTheme = async (newTheme: Theme): Promise<void> => {
         setThemeState(newTheme);
         try {
             await AsyncStorage.setItem('user_theme', newTheme);
