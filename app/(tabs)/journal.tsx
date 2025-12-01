@@ -35,13 +35,13 @@ function getTypeColor(type: string) {
     }
 }
 
-import { useColorScheme } from 'react-native';
+import { useTheme } from '@/core/contexts/ThemeContext';
 
 // ... imports
 
 function JournalList({ journalEntries, onAdd, onView }) {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const { effectiveColorScheme } = useTheme();
+    const isDark = effectiveColorScheme === 'dark';
 
     const theme = {
         bg: isDark ? '#111827' : '#f3f4f6',
@@ -109,8 +109,8 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
     const [accountPickerVisible, setAccountPickerVisible] = useState(false);
     const [currentLineIndex, setCurrentLineIndex] = useState<number | null>(null);
 
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const { effectiveColorScheme } = useTheme();
+    const isDark = effectiveColorScheme === 'dark';
 
     const theme = {
         bg: isDark ? '#1f2937' : '#fff',
@@ -367,8 +367,8 @@ export default function JournalScreen() {
         actions
     } = useJournalViewModel();
 
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const { effectiveColorScheme } = useTheme();
+    const isDark = effectiveColorScheme === 'dark';
 
     const theme = {
         bg: isDark ? '#1f2937' : '#fff',

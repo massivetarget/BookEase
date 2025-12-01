@@ -187,7 +187,7 @@ export class WebJournalRepository implements IJournalRepository {
 
         // Delete lines
         for (const line of lines) {
-            await tx.objectStore('journal_lines').delete(line._id);
+            await tx.objectStore('journal_lines').delete((line as any).id);
         }
 
         // Delete entry

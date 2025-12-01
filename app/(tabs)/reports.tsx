@@ -1,12 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-import { useColorScheme } from 'react-native';
+import { useTheme } from '@/core/contexts/ThemeContext';
 
 export default function ReportsScreen() {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const { effectiveColorScheme } = useTheme();
+    const isDark = effectiveColorScheme === 'dark';
 
     const theme = {
         bg: isDark ? '#111827' : '#f3f4f6',

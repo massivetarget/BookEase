@@ -33,13 +33,13 @@ const getTypeColor = (accountType: string) => {
     }
 };
 
-import { useColorScheme } from 'react-native';
+import { useTheme } from '@/core/contexts/ThemeContext';
 
 // ... (imports remain same)
 
 function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearchQuery, filterType, setFilterType, openAddModal }) {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const { effectiveColorScheme } = useTheme();
+    const isDark = effectiveColorScheme === 'dark';
 
     const theme = {
         bg: isDark ? '#111827' : '#f3f4f6',
@@ -171,8 +171,8 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
 }
 
 function AccountModal({ visible, onClose, onSave, editingAccount, code, setCode, name, setName, type, setType, subtype, setSubtype }) {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const { effectiveColorScheme } = useTheme();
+    const isDark = effectiveColorScheme === 'dark';
 
     const theme = {
         bg: isDark ? '#1f2937' : '#fff',

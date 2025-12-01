@@ -1,11 +1,11 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
+import { useTheme } from '@/core/contexts/ThemeContext';
 
 export default function TabsLayout() {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const { effectiveColorScheme } = useTheme();
+    const isDark = effectiveColorScheme === 'dark';
 
     const theme = {
         headerBg: isDark ? '#1e40af' : '#2563eb',

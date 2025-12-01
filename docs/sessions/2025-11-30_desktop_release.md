@@ -74,7 +74,12 @@ In this session, we finalized the features for Version 1.1.0, configured the pro
     *   ✅ **Theme Persistence**: Implemented `ThemeContext` with `AsyncStorage` to save user preference (Light/Dark/System).
     *   ✅ **Functional Build**: `v1.1.0` Desktop build has core features (Journal, Accounts, Backup) working. UI needs further refinement.
 
-### 7. Handover Plan for Next Session
+### 7. Next Steps
+1.  **Implement LocalStorage for UI Settings**: Add logic to save/load UI settings (Theme, etc.) using `localStorage`.
+2.  **Address Android Build**: Revisit the Android build process.
+3.  **P2P Sync**: Begin planning the Peer-to-Peer sync implementation.
+
+### 8. Handover Plan for Next Session
 1.  **Fix Android Build** 🔴 *(Critical)*
     *   Debug Gradle/JDK errors preventing mobile launch.
     *   Goal: Run app on Android Emulator.

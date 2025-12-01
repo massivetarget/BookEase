@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useDashboardViewModel } from '@/core/viewmodels/useDashboardViewModel';
+import { useTheme } from '@/core/contexts/ThemeContext';
 
 function DashboardContent() {
     const {
@@ -12,8 +13,8 @@ function DashboardContent() {
         postedEntriesCount
     } = useDashboardViewModel();
 
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const { effectiveColorScheme } = useTheme();
+    const isDark = effectiveColorScheme === 'dark';
 
     const theme = {
         bg: isDark ? '#111827' : '#f3f4f6',
