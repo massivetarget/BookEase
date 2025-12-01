@@ -1,4 +1,3 @@
-import '../global.css';
 import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
