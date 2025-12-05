@@ -88,12 +88,24 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [description, setDescription] = useState('');
     const [reference, setReference] = useState('');
+
+    // Standard Mode State
     const [lines, setLines] = useState<LineItem[]>([
         { id: '1', accountId: '', accountName: '', debit: '', credit: '', description: '' },
         { id: '2', accountId: '', accountName: '', debit: '', credit: '', description: '' },
     ]);
+
+    // Simple Mode State
+    const [isSimpleMode, setIsSimpleMode] = useState(false);
+    const [transactionType, setTransactionType] = useState<'Income' | 'Expense'>('Expense');
+    const [simpleAmount, setSimpleAmount] = useState('');
+    const [categoryAccount, setCategoryAccount] = useState<Account | null>(null);
+    const [paymentAccount, setPaymentAccount] = useState<Account | null>(null);
+
+    // Picker State
     const [accountPickerVisible, setAccountPickerVisible] = useState(false);
     const [currentLineIndex, setCurrentLineIndex] = useState<number | null>(null);
+    const [pickerTarget, setPickerTarget] = useState<'line' | 'category' | 'payment'>('line');
 
     const getTotalDebits = () => lines.reduce((sum, line) => sum + (parseFloat(line.debit) || 0), 0);
     const getTotalCredits = () => lines.reduce((sum, line) => sum + (parseFloat(line.credit) || 0), 0);
@@ -128,7 +140,7 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
     };
 
     const selectAccount = (account) => {
-        if (currentLineIndex !== null) {
+        if (pickerTarget === 'line' && currentLineIndex !== null) {
             setLines(lines.map((line, index) => {
                 if (index === currentLineIndex) {
                     return {
@@ -139,18 +151,32 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
                 }
                 return line;
             }));
+            setCurrentLineIndex(null);
+        } else if (pickerTarget === 'category') {
+            setCategoryAccount(account);
+        } else if (pickerTarget === 'payment') {
+            setPaymentAccount(account);
         }
         setAccountPickerVisible(false);
-        setCurrentLineIndex(null);
     };
 
-    const openAccountPicker = (index: number) => {
-        setCurrentLineIndex(index);
+    const openAccountPicker = (target: 'line' | 'category' | 'payment', index: number | null = null) => {
+        setPickerTarget(target);
+        if (index !== null) setCurrentLineIndex(index);
         setAccountPickerVisible(true);
     };
 
     const handleSaveDraft = () => {
         if (!description) { Alert.alert('Error', 'Description is required'); return; }
+
+        let finalLines = lines;
+
+        if (isSimpleMode) {
+            // Logic to be handled in handlePost. Drafts for Simple Mode not strictly required to be folded yet, 
+            // but consistent behavior is better.
+            // For now, let's only allow Standard Mode saving or auto-convert if valid.
+        }
+
         const validLines = lines.filter((line) => line.accountId && (line.debit || line.credit));
         if (validLines.length < 2) { Alert.alert('Error', 'You must have at least 2 valid lines'); return; }
         onSaveDraft({ date, description, reference, lines: validLines });
@@ -158,9 +184,37 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
 
     const handlePost = () => {
         if (!description) { Alert.alert('Error', 'Description is required'); return; }
-        const validLines = lines.filter((line) => line.accountId && (line.debit || line.credit));
-        if (validLines.length < 2) { Alert.alert('Error', 'You must have at least 2 valid lines'); return; }
-        if (!isBalanced()) { Alert.alert('Error', 'Entry is not balanced.'); return; }
+
+        let validLines: LineItem[] = [];
+
+        if (isSimpleMode) {
+            if (!simpleAmount || parseFloat(simpleAmount) <= 0) { Alert.alert('Error', 'Amount must be valid'); return; }
+            if (!categoryAccount) { Alert.alert('Error', 'Category account is required'); return; }
+            if (!paymentAccount) { Alert.alert('Error', 'Payment account is required'); return; }
+
+            const amount = parseFloat(simpleAmount).toFixed(2);
+
+            // Construct Double Entry
+            // Expense: Debit Category, Credit Payment (Asset)
+            // Income: Debit Payment (Asset), Credit Category
+
+            if (transactionType === 'Expense') {
+                validLines = [
+                    { id: '1', accountId: categoryAccount._id.toString(), accountName: categoryAccount.name, debit: amount, credit: '', description: '' },
+                    { id: '2', accountId: paymentAccount._id.toString(), accountName: paymentAccount.name, debit: '', credit: amount, description: '' }
+                ];
+            } else { // Income
+                validLines = [
+                    { id: '1', accountId: paymentAccount._id.toString(), accountName: paymentAccount.name, debit: amount, credit: '', description: '' },
+                    { id: '2', accountId: categoryAccount._id.toString(), accountName: categoryAccount.name, debit: '', credit: amount, description: '' }
+                ];
+            }
+        } else {
+            validLines = lines.filter((line) => line.accountId && (line.debit || line.credit));
+            if (validLines.length < 2) { Alert.alert('Error', 'You must have at least 2 valid lines'); return; }
+            if (!isBalanced()) { Alert.alert('Error', 'Entry is not balanced.'); return; }
+        }
+
         onPost({ date, description, reference, lines: validLines });
     };
 
@@ -174,7 +228,7 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
                     </TouchableOpacity>
                 )}
             </View>
-            <TouchableOpacity style={styles.accountSelector} onPress={() => openAccountPicker(index)}>
+            <TouchableOpacity style={styles.accountSelector} onPress={() => openAccountPicker('line', index)}>
                 <Text style={item.accountName ? styles.accountSelected : styles.accountPlaceholder}>
                     {item.accountName || 'Select Account'}
                 </Text>
@@ -198,61 +252,129 @@ function JournalEntryModal({ visible, onClose, onSaveDraft, onPost, accounts }) 
         <Modal visible={visible} animationType="slide">
             <View style={styles.modalContainer}>
                 <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>New Journal Entry</Text>
-                    <TouchableOpacity onPress={onClose}>
-                        <Ionicons name="close" size={28} color="#6b7280" />
-                    </TouchableOpacity>
+                    <Text style={styles.modalTitle}>
+                        {isSimpleMode ? 'Simple Entry' : 'New Journal Entry'}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <TouchableOpacity onPress={() => setIsSimpleMode(!isSimpleMode)} style={{ marginRight: 16 }}>
+                            <Text style={{ color: '#2563eb', fontWeight: '600' }}>
+                                {isSimpleMode ? 'Advanced Mode' : 'Simple Mode'}
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={onClose}>
+                            <Ionicons name="close" size={28} color="#6b7280" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
+
                 <ScrollView style={styles.modalBody}>
                     <Text style={styles.label}>Date *</Text>
                     <TextInput style={styles.input} value={date} onChangeText={setDate} placeholder="YYYY-MM-DD" />
+
+                    {isSimpleMode ? (
+                        <>
+                            {/* Simple Mode UI */}
+                            <Text style={styles.label}>Transaction Type</Text>
+                            <View style={{ flexDirection: 'row', marginBottom: 16 }}>
+                                <TouchableOpacity
+                                    style={[styles.typeOption, transactionType === 'Expense' && styles.typeOptionActive, { borderColor: '#dc2626' }]}
+                                    onPress={() => setTransactionType('Expense')}
+                                >
+                                    <Text style={[styles.typeOptionText, { color: transactionType === 'Expense' ? '#dc2626' : '#6b7280' }]}>Money Out (Expense)</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.typeOption, transactionType === 'Income' && styles.typeOptionActive, { borderColor: '#059669' }]}
+                                    onPress={() => setTransactionType('Income')}
+                                >
+                                    <Text style={[styles.typeOptionText, { color: transactionType === 'Income' ? '#059669' : '#6b7280' }]}>Money In (Income)</Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            <Text style={styles.label}>Amount *</Text>
+                            <TextInput
+                                style={[styles.input, { fontSize: 24, fontWeight: 'bold' }]}
+                                value={simpleAmount}
+                                onChangeText={setSimpleAmount}
+                                keyboardType="decimal-pad"
+                                placeholder="$0.00"
+                            />
+
+                            <Text style={styles.label}>{transactionType === 'Expense' ? 'Category (What did you buy?)' : 'Category (Source of Funds)'} *</Text>
+                            <TouchableOpacity style={styles.accountSelector} onPress={() => openAccountPicker('category')}>
+                                <Text style={categoryAccount ? styles.accountSelected : styles.accountPlaceholder}>
+                                    {categoryAccount ? `${categoryAccount.code} - ${categoryAccount.name}` : 'Select Category'}
+                                </Text>
+                                <Ionicons name="chevron-down" size={20} color="#6b7280" />
+                            </TouchableOpacity>
+
+                            <Text style={styles.label}>{transactionType === 'Expense' ? 'Paid From' : 'Deposited To'} *</Text>
+                            <TouchableOpacity style={styles.accountSelector} onPress={() => openAccountPicker('payment')}>
+                                <Text style={paymentAccount ? styles.accountSelected : styles.accountPlaceholder}>
+                                    {paymentAccount ? `${paymentAccount.code} - ${paymentAccount.name}` : 'Select Account'}
+                                </Text>
+                                <Ionicons name="chevron-down" size={20} color="#6b7280" />
+                            </TouchableOpacity>
+                        </>
+                    ) : (
+                        <>
+                            {/* Standard Mode UI */}
+                            <Text style={styles.label}>Reference</Text>
+                            <TextInput style={styles.input} value={reference} onChangeText={setReference} placeholder="Invoice #, Receipt #, etc." />
+                            <View style={styles.linesHeader}>
+                                <Text style={styles.linesTitle}>Journal Lines</Text>
+                                <TouchableOpacity onPress={addLine} style={styles.addLineButton}>
+                                    <Ionicons name="add-circle-outline" size={20} color="#2563eb" />
+                                    <Text style={styles.addLineText}>Add Line</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <FlashList<LineItem> data={lines} renderItem={renderLine} keyExtractor={(item) => item.id} scrollEnabled={false}
+                                // @ts-ignore
+                                estimatedItemSize={200} />
+                            <View style={[styles.balanceCard, isBalanced() ? styles.balanceCardGood : styles.balanceCardBad]}>
+                                <View style={styles.balanceRow}>
+                                    <Text style={styles.balanceLabel}>Total Debits:</Text>
+                                    <Text style={styles.balanceValue}>${getTotalDebits().toFixed(2)}</Text>
+                                </View>
+                                <View style={styles.balanceRow}>
+                                    <Text style={styles.balanceLabel}>Total Credits:</Text>
+                                    <Text style={styles.balanceValue}>${getTotalCredits().toFixed(2)}</Text>
+                                </View>
+                                <View style={[styles.balanceRow, styles.balanceDivider]}>
+                                    <Text style={styles.balanceLabelBold}>Difference:</Text>
+                                    <Text style={[styles.balanceValueBold, isBalanced() ? styles.balanced : styles.unbalanced]}>
+                                        ${Math.abs(getTotalDebits() - getTotalCredits()).toFixed(2)}
+                                    </Text>
+                                </View>
+                                {isBalanced() ? (
+                                    <View style={styles.balanceStatus}>
+                                        <Ionicons name="checkmark-circle" size={20} color="#059669" />
+                                        <Text style={styles.balanceStatusTextGood}>Entry is balanced ✓</Text>
+                                    </View>
+                                ) : (
+                                    <View style={styles.balanceStatus}>
+                                        <Ionicons name="alert-circle" size={20} color="#dc2626" />
+                                        <Text style={styles.balanceStatusTextBad}>Entry is not balanced</Text>
+                                    </View>
+                                )}
+                            </View>
+                        </>
+                    )}
+
                     <Text style={styles.label}>Description *</Text>
                     <TextInput style={styles.input} value={description} onChangeText={setDescription} placeholder="e.g., Purchase of office supplies" />
-                    <Text style={styles.label}>Reference</Text>
-                    <TextInput style={styles.input} value={reference} onChangeText={setReference} placeholder="Invoice #, Receipt #, etc." />
-                    <View style={styles.linesHeader}>
-                        <Text style={styles.linesTitle}>Journal Lines</Text>
-                        <TouchableOpacity onPress={addLine} style={styles.addLineButton}>
-                            <Ionicons name="add-circle-outline" size={20} color="#2563eb" />
-                            <Text style={styles.addLineText}>Add Line</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <FlashList<LineItem> data={lines} renderItem={renderLine} keyExtractor={(item) => item.id} scrollEnabled={false}
-                        // @ts-ignore
-                        estimatedItemSize={200} />
-                    <View style={[styles.balanceCard, isBalanced() ? styles.balanceCardGood : styles.balanceCardBad]}>
-                        <View style={styles.balanceRow}>
-                            <Text style={styles.balanceLabel}>Total Debits:</Text>
-                            <Text style={styles.balanceValue}>${getTotalDebits().toFixed(2)}</Text>
-                        </View>
-                        <View style={styles.balanceRow}>
-                            <Text style={styles.balanceLabel}>Total Credits:</Text>
-                            <Text style={styles.balanceValue}>${getTotalCredits().toFixed(2)}</Text>
-                        </View>
-                        <View style={[styles.balanceRow, styles.balanceDivider]}>
-                            <Text style={styles.balanceLabelBold}>Difference:</Text>
-                            <Text style={[styles.balanceValueBold, isBalanced() ? styles.balanced : styles.unbalanced]}>
-                                ${Math.abs(getTotalDebits() - getTotalCredits()).toFixed(2)}
-                            </Text>
-                        </View>
-                        {isBalanced() ? (
-                            <View style={styles.balanceStatus}>
-                                <Ionicons name="checkmark-circle" size={20} color="#059669" />
-                                <Text style={styles.balanceStatusTextGood}>Entry is balanced ✓</Text>
-                            </View>
-                        ) : (
-                            <View style={styles.balanceStatus}>
-                                <Ionicons name="alert-circle" size={20} color="#dc2626" />
-                                <Text style={styles.balanceStatusTextBad}>Entry is not balanced</Text>
-                            </View>
-                        )}
-                    </View>
+
                 </ScrollView>
                 <View style={styles.modalFooter}>
-                    <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={handleSaveDraft}>
-                        <Text style={styles.buttonSecondaryText}>Save Draft</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.button, styles.buttonPrimary, !isBalanced() && styles.buttonDisabled]} onPress={handlePost} disabled={!isBalanced()}>
+                    {!isSimpleMode && (
+                        <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={handleSaveDraft}>
+                            <Text style={styles.buttonSecondaryText}>Save Draft</Text>
+                        </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                        style={[styles.button, styles.buttonPrimary, (!isSimpleMode && !isBalanced()) && styles.buttonDisabled]}
+                        onPress={handlePost}
+                        disabled={!isSimpleMode && !isBalanced()}
+                    >
                         <Text style={styles.buttonPrimaryText}>Post Entry</Text>
                     </TouchableOpacity>
                 </View>
@@ -798,7 +920,7 @@ const styles = StyleSheet.create({
     },
     viewLineAmount: {
         fontSize: 14,
-        color: '#374151',
+        color: '#1f2937',
     },
     viewLineDesc: {
         fontSize: 12,
@@ -811,5 +933,23 @@ const styles = StyleSheet.create({
         paddingTop: 16,
         borderTopWidth: 2,
         borderTopColor: '#e5e7eb',
+    },
+    typeOption: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        borderRadius: 8,
+        paddingVertical: 12,
+        alignItems: 'center',
+        marginHorizontal: 4,
+        backgroundColor: '#f9fafb',
+    },
+    typeOptionActive: {
+        backgroundColor: '#eff6ff',
+        borderWidth: 2,
+    },
+    typeOptionText: {
+        fontSize: 14,
+        fontWeight: '600',
     },
 });
