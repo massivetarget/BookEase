@@ -1,4 +1,4 @@
-package com.anonymous.BookEaseApp
+package com.bookease.app
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

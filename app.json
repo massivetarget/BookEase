@@ -13,8 +13,8 @@
       "expo-asset"
     ],
     "android": {
-      "package": "com.anonymous.BookEaseApp",
-      "targetSdkVersion": 34
+      "package": "com.bookease.app",
+      "googleServicesFile": "./google-services.json"
     },
     "scheme": "bookeaseapp",
     "web": {

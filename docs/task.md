@@ -11,5 +11,11 @@
     - [x] Implement `WebJournalRepository` (Persistent) <!-- id: 10 -->
     - [x] Update `app/_layout.tsx` to use Web repositories <!-- id: 11 -->
     - [x] Delete `core/repositories/mock` directory <!-- id: 12 -->
-- [ ] **Project Maintenance** <!-- id: 4 -->
-    - [ ] Verify build environment status (JDK/Android SDK) <!-- id: 5 -->
+- [x] **Fix Android Build Environment** <!-- id: 4 -->
+    - [x] Locate Android SDK (`AppData/Local/Android/Sdk`) <!-- id: 13 -->
+    - [x] Create `android/local.properties` <!-- id: 14 -->
+    - [x] Install JDK 17 (**Fixed**: User provided path) <!-- id: 15 -->
+    - [x] Set `JAVA_HOME` environment variable (Temporary) <!-- id: 16 -->
+    - [x] Run `npx expo-doctor` to verify (**Verified via Build**) <!-- id: 5 -->
+- [x] **Build & Run** <!-- id: 17 -->
+    - [x] Run `npx expo run:android` (**Success**) <!-- id: 18 -->

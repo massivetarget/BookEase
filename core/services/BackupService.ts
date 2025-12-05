@@ -1,16 +1,13 @@
 import { GoogleSignin, statusCodes, User } from '@react-native-google-signin/google-signin';
-import * as FileSystem from 'expo-file-system';
-import { documentDirectory as legacyDocumentDirectory } from 'expo-file-system/legacy';
+import { documentDirectory, getInfoAsync, uploadAsync, downloadAsync, makeDirectoryAsync } from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
 import { closeDatabase } from '../database/Database';
 
-const { File, Directory } = FileSystem as any;
-
 // Configure Google Sign-In
 // You need to replace these with your actual Client IDs from Google Cloud Console
-const GOOGLE_WEB_CLIENT_ID = '1044415122690-eo4dori51amm3dhgulab4ehl2oufj389.apps.googleusercontent.com';
-const GOOGLE_IOS_CLIENT_ID = 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com';
-const GOOGLE_ANDROID_CLIENT_ID = '1044415122690-lmfhjfineic0d9l2o4h682j93dal5oto.apps.googleusercontent.com';
+const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
 
 GoogleSignin.configure({
     webClientId: GOOGLE_WEB_CLIENT_ID,
@@ -20,14 +17,8 @@ GoogleSignin.configure({
 });
 
 const DB_NAME = 'bookease.db';
-
-// Use legacy documentDirectory to ensure we get the correct path
-const docDir = legacyDocumentDirectory;
-
-// Construct path using the new API
-const DB_DIR_PATH = (docDir || '') + 'SQLite';
-const DB_DIR = new Directory(DB_DIR_PATH);
-const DB_FILE = new File(DB_DIR_PATH + '/' + DB_NAME);
+const DB_DIR = documentDirectory + 'SQLite';
+const DB_PATH = DB_DIR + '/' + DB_NAME;
 const MIME_TYPE = 'application/x-sqlite3';
 
 export class BackupService {
@@ -76,7 +67,8 @@ export class BackupService {
             const accessToken = tokens.accessToken;
 
             // 1. Check if the database file exists
-            if (!DB_FILE.exists) {
+            const fileInfo = await getInfoAsync(DB_PATH);
+            if (!fileInfo.exists) {
                 return { success: false, error: 'Local database file not found.' };
             }
 
@@ -97,25 +89,20 @@ export class BackupService {
                 fileId = searchData.files[0].id;
             }
 
-            // Read file content
-            const fileContent = await DB_FILE.bytes();
-
             if (fileId) {
-                // Update existing file
+                // Update existing file specific endpoint
                 const updateUrl = `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`;
 
-                const response = await fetch(updateUrl, {
-                    method: 'PATCH',
+                // Use FileSystem.uploadAsync for robust large file handling
+                const response = await uploadAsync(updateUrl, DB_PATH, {
+                    httpMethod: 'PATCH',
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                         'Content-Type': MIME_TYPE,
                     },
-                    body: fileContent,
                 });
 
                 if (response.status !== 200) {
-                    const errorText = await response.text();
-                    console.error('Update failed:', errorText);
                     return { success: false, error: `Upload failed with status ${response.status}` };
                 }
 
@@ -154,18 +141,15 @@ export class BackupService {
                 // Step B: Upload content
                 const uploadUrl = `https://www.googleapis.com/upload/drive/v3/files/${newFileId}?uploadType=media`;
 
-                const response = await fetch(uploadUrl, {
-                    method: 'PATCH',
+                const response = await uploadAsync(uploadUrl, DB_PATH, {
+                    httpMethod: 'PATCH', // use PATCH to update the content of the newly created file metadata
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                         'Content-Type': MIME_TYPE,
                     },
-                    body: fileContent,
                 });
 
                 if (response.status !== 200) {
-                    const errorText = await response.text();
-                    console.error('Upload failed:', errorText);
                     return { success: false, error: `Upload failed with status ${response.status}` };
                 }
 
@@ -204,28 +188,26 @@ export class BackupService {
             const downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
 
             // Ensure directory exists
-            if (!DB_DIR.exists) {
-                DB_DIR.create();
+            const dirInfo = await getInfoAsync(DB_DIR);
+            if (!dirInfo.exists) {
+                await makeDirectoryAsync(DB_DIR, { intermediates: true });
             }
 
             // Close DB before overwriting
             await closeDatabase();
 
-            const response = await fetch(downloadUrl, {
-                headers: { Authorization: `Bearer ${accessToken}` },
-            });
+            const result = await downloadAsync(
+                downloadUrl,
+                DB_PATH,
+                {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                }
+            );
 
-            if (response.status !== 200) {
+            if (result.status !== 200) {
                 console.error('Failed to download file from Drive');
-                return { success: false, error: `Download failed with status ${response.status}` };
+                return { success: false, error: `Download failed with status ${result.status}` };
             }
-
-            const blob = await response.blob();
-            const arrayBuffer = await new Response(blob).arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
-
-            // Write to file
-            await DB_FILE.write(uint8Array);
 
             return { success: true };
 

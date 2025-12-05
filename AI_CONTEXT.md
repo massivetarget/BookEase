@@ -47,7 +47,7 @@ The app is strictly layered to allow swapping data sources.
 *   **Build Status**:
     *   ✅ **Desktop (Windows)**: Functional (Mock Data).
     *   ✅ **Web**: Functional (Mock Data).
-    *   ⚠️ **Android**: **Build Environment Failed**. JDK 1.8 detected (Need JDK 17). `local.properties` missing.
+    *   ✅ **Android**: **Functional** (JDK 17 Configured).
     *   ⚠️ **iOS**: Untested.
 
 ## � User Preferences & Workflow

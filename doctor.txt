@@ -1,0 +1,49 @@
+﻿env: load .env
+env: export EXPO_ROUTER_APP_ROOT
+Running 17 checks on your project...
+14/17 checks passed. 3 checks failed. Possible issues detected:
+Use the --verbose flag to see more details about passed checks.
+
+Ô£û Check Expo config (app.json/ app.config.js) schema
+Error validating fields in D:\Project\BookEase\app.json:
+ Field: android - should NOT have additional property 'targetSdkVersion'.
+Advice:
+Resolve schema errors in your app config. Learn more: https://docs.expo.dev/workflow/configuration/
+
+Ô£û Check for app config fields that may not be synced in a non-CNG project
+This project contains native project folders but also has native configuration properties in app.json, indicating it is configured to use Prebuild. When the android/ios folders are present, EAS Build will not sync the following properties: plugins, android, scheme. 
+
+
+Ô£û Check that packages match versions required by installed Expo SDK
+
+­ƒöº Patch version mismatches
+package             expected  found    
+expo                ~54.0.27  54.0.25  
+expo-asset          ~12.0.11  12.0.10  
+expo-constants      ~18.0.11  18.0.10  
+expo-dev-client     ~6.0.20   6.0.18   
+expo-file-system    ~19.0.20  19.0.19  
+expo-font           ~14.0.10  14.0.9   
+expo-linking        ~8.0.10   8.0.9    
+expo-router         ~6.0.17   6.0.15   
+expo-splash-screen  ~31.0.12  31.0.11  
+expo-sqlite         ~16.0.10  16.0.9   
+expo-status-bar     ~3.0.9    3.0.8    
+
+Changelogs:
+- expo-asset ÔåÆ https://github.com/expo/expo/blob/sdk-54/packages/expo-asset/CHANGELOG.md
+- expo-constants ÔåÆ https://github.com/expo/expo/blob/sdk-54/packages/expo-constants/CHANGELOG.md
+- expo-dev-client ÔåÆ https://github.com/expo/expo/blob/sdk-54/packages/expo-dev-client/CHANGELOG.md
+- expo-file-system ÔåÆ https://github.com/expo/expo/blob/sdk-54/packages/expo-file-system/CHANGELOG.md
+- expo-font ÔåÆ https://github.com/expo/expo/blob/sdk-54/packages/expo-font/CHANGELOG.md
+- expo-linking ÔåÆ https://github.com/expo/expo/blob/sdk-54/packages/expo-linking/CHANGELOG.md
+- expo-router ÔåÆ https://github.com/expo/expo/blob/sdk-54/packages/expo-router/CHANGELOG.md
+- expo-splash-screen ÔåÆ https://github.com/expo/expo/blob/sdk-54/packages/expo-splash-screen/CHANGELOG.md
+- expo-sqlite ÔåÆ https://github.com/expo/expo/blob/sdk-54/packages/expo-sqlite/CHANGELOG.md
+- expo-status-bar ÔåÆ https://github.com/expo/expo/blob/sdk-54/packages/expo-status-bar/CHANGELOG.md
+
+11 packages out of date.
+Advice:
+Use 'npx expo install --check' to review and upgrade your dependencies.
+To ignore specific packages, add them to "expo.install.exclude" in package.json. Learn more: https://expo.fyi/dependency-validation
+

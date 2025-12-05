@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2025-11-30
 
 ### Added
+- **Android Support**: Configured Google Services and Android build settings for production readiness.
+- **Environment Configuration**: Added `.env` support for secure API key management.
+
+### Fixed
+- **Android Build**: Resolved `electron/main.js` bundling error by updating Metro config and `package.json`.
+- **Google Drive Backup**: 
+  - Refactored `BackupService` to use reliable `uploadAsync`/`downloadAsync` from `expo-file-system`.
+  - Fixed TypeScript errors with legacy FileSystem imports.
+  - Secured API keys by moving them to environment variables.
+- **Project Structure**: Removed "Anonymous" package name in favor of `com.bookease.app`.
+
+### Added
 - **Desktop Build Support**: Added `electron-builder` configuration to generate Windows installers (`.exe`) and portable executables.
 - **Google Sheets Integration**: 
   - Import journal entries from Google Sheets CSV.

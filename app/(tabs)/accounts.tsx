@@ -98,40 +98,56 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
                         All
                     </Text>
                 </TouchableOpacity>
-                {ACCOUNT_TYPES.map((accountType) => (
-                    <TouchableOpacity
-                        key={accountType}
-                        style={[styles.filterChip, filterType === accountType && styles.filterChipActive]}
-                        onPress={() => setFilterType(accountType)}
-                    >
-                        <Text
+                {ACCOUNT_TYPES.map((accountType) => {
+                    const isActive = filterType === accountType;
+                    const activeColor = getTypeColor(accountType);
+                    const pluralName = {
+                        'Asset': 'Assets',
+                        'Liability': 'Liabilities',
+                        'Equity': 'Equity',
+                        'Income': 'Income',
+                        'Expense': 'Expenses'
+                    }[accountType] || accountType;
+
+                    return (
+                        <TouchableOpacity
+                            key={accountType}
                             style={[
-                                styles.filterChipText,
-                                filterType === accountType && styles.filterChipTextActive,
+                                styles.filterChip,
+                                isActive && { backgroundColor: activeColor }
                             ]}
+                            onPress={() => setFilterType(accountType)}
                         >
-                            {accountType}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
+                            <Text
+                                style={[
+                                    styles.filterChipText,
+                                    isActive && styles.filterChipTextActive,
+                                ]}
+                            >
+                                {pluralName}
+                            </Text>
+                        </TouchableOpacity>
+                    );
+                })}
             </ScrollView>
 
             {/* Accounts List */}
-            {/* Accounts List */}
-            <FlashList<Account>
-                data={accounts}
-                renderItem={renderAccount}
-                keyExtractor={(item) => item._id.toString()}
-                contentContainerStyle={styles.listContainer}
-                // @ts-ignore
-                estimatedItemSize={100}
-                ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <Ionicons name="folder-open-outline" size={64} color="#d1d5db" />
-                        <Text style={styles.emptyText}>No accounts found</Text>
-                    </View>
-                }
-            />
+            <View style={{ flex: 1 }}>
+                <FlashList<Account>
+                    data={accounts}
+                    renderItem={renderAccount}
+                    keyExtractor={(item) => item._id.toString()}
+                    contentContainerStyle={styles.listContainer}
+                    // @ts-ignore
+                    estimatedItemSize={100}
+                    ListEmptyComponent={
+                        <View style={styles.emptyContainer}>
+                            <Ionicons name="folder-open-outline" size={64} color="#d1d5db" />
+                            <Text style={styles.emptyText}>No accounts found</Text>
+                        </View>
+                    }
+                />
+            </View>
 
             {/* Add Button */}
             <TouchableOpacity style={styles.fab} onPress={openAddModal}>
@@ -298,11 +314,12 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         borderBottomWidth: 1,
         borderBottomColor: '#e5e7eb',
+        flexGrow: 0,
     },
     filterChip: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
         backgroundColor: '#f3f4f6',
         marginRight: 8,
     },
@@ -310,7 +327,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#2563eb',
     },
     filterChipText: {
-        fontSize: 14,
+        fontSize: 13,
         color: '#6b7280',
     },
     filterChipTextActive: {
