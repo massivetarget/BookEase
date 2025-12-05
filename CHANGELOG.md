@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-12-05
+
+### Added
+- **Simple Mode**: Simplified Journal Entry creation with "Money In" / "Money Out" flow.
+- **Accounts UI**: Enhanced filter buttons with semantic colors and better sizing.
+- **Google Sign-In**: Fixed `DEVELOPER_ERROR` by aligning `google-services.json` project with Client IDs and adding debug SHA-1.
+
 ## [1.1.0] - 2025-11-30
 
 ### Added
