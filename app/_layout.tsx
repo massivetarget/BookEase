@@ -8,8 +8,8 @@ import 'react-native-reanimated';
 import { Platform, View, Text, useColorScheme } from 'react-native';
 
 import { ServiceProvider, useServices } from '@/core/services/ServiceContext';
-import { MockAccountRepository } from '@/core/repositories/mock/MockAccountRepository';
-import { MockJournalRepository } from '@/core/repositories/mock/MockJournalRepository';
+import { WebAccountRepository } from '@/core/repositories/web/WebAccountRepository';
+import { WebJournalRepository } from '@/core/repositories/web/WebJournalRepository';
 import { SQLiteAccountRepository } from '@/core/repositories/sqlite/SQLiteAccountRepository';
 import { SQLiteJournalRepository } from '@/core/repositories/sqlite/SQLiteJournalRepository';
 import { getDBConnection, createTables, seedDatabase } from '@/core/database/Database';
@@ -57,8 +57,8 @@ function ServiceInitializer({ children }: { children: React.ReactNode }) {
         const init = async () => {
             try {
                 if (Platform.OS === 'web') {
-                    setAccountRepository(new MockAccountRepository());
-                    setJournalRepository(new MockJournalRepository());
+                    setAccountRepository(new WebAccountRepository());
+                    setJournalRepository(new WebJournalRepository());
                 } else {
                     const db = await getDBConnection();
                     await createTables(db);

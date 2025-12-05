@@ -1,32 +1,15 @@
 # Tasks
 
-## 🚀 Active: Fix Android Build
-- [ ] Checkout to `main` branch
-- [ ] Resolve Gradle/JDK environment issues
-- [ ] Successfully build APK/AAB
-- [ ] Verify app runs on Android device
-
-## 🚧 Backlog
-
-### 1. Documentation Cleanup
-- [x] Update `docs/task.md` to reflect current project state
-- [x] Verify `docs/ARCHITECTURE.md` is accurate
-
-### 2. Tailwind Migration (Paused)
-- [ ] Resolve NativeWind v4 build issues
-- [ ] Enable NativeWind in project
-- [ ] Migrate existing styles to Tailwind classes
-
-### 3. Phase 2 Features
-- [ ] **Reports**: Implement Balance Sheet and P&L generation
-- [ ] **Charts**: Add visual analytics for income/expenses
-- [ ] **PDF Export**: Allow exporting reports to PDF
-
-### 4. Maintenance
-- [ ] Review `package.json` dependencies for updates
-
-### 5. Research & Planning
-- [ ] Evaluate P2P sync feasibility without a relay server
-- [ ] Check Google Drive backup integration details
-- [ ] Create `plan_review.md` with findings and recommendations
-- [ ] Discuss review with user
+- [x] **Context Restoration** <!-- id: 0 -->
+    - [x] Analyze current codebase state (Dependencies, Architecture) <!-- id: 1 -->
+    - [x] Create `AI_CONTEXT.md` <!-- id: 2 -->
+    - [x] Check `main` branch for existing context file (Not found) <!-- id: 6 -->
+    - [x] Check `origin/main` branch (Not found) <!-- id: 7 -->
+    - [x] Update `task.md` with backlog items found in other docs <!-- id: 3 -->
+- [x] **Remove Mock Repository** <!-- id: 8 -->
+    - [x] Implement `WebAccountRepository` (Persistent) <!-- id: 9 -->
+    - [x] Implement `WebJournalRepository` (Persistent) <!-- id: 10 -->
+    - [x] Update `app/_layout.tsx` to use Web repositories <!-- id: 11 -->
+    - [x] Delete `core/repositories/mock` directory <!-- id: 12 -->
+- [ ] **Project Maintenance** <!-- id: 4 -->
+    - [ ] Verify build environment status (JDK/Android SDK) <!-- id: 5 -->
