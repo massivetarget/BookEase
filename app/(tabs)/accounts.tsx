@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     View,
     Text,
@@ -12,6 +12,7 @@ import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { useAccountsViewModel } from '@/core/viewmodels/useAccountsViewModel';
 import { Account } from '@/models';
+import { useTheme } from '@/core/contexts/ThemeContext';
 
 // Shared types and constants
 const ACCOUNT_TYPES: Array<'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense'> = [
@@ -34,6 +35,9 @@ const getTypeColor = (accountType: string) => {
 };
 
 function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearchQuery, filterType, setFilterType, openAddModal }) {
+    const { colors } = useTheme();
+    const styles = useMemo(() => getStyles(colors), [colors]);
+
     const renderAccount = ({ item }) => (
         <TouchableOpacity
             style={[styles.accountCard, !item.isActive && styles.inactiveCard]}
@@ -63,9 +67,9 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
                     <Ionicons
                         name={item.isActive ? 'checkmark-circle' : 'close-circle'}
                         size={20}
-                        color={item.isActive ? '#059669' : '#6b7280'}
+                        color={item.isActive ? colors.success : colors.subText}
                     />
-                    <Text style={[styles.statusText, { color: item.isActive ? '#059669' : '#6b7280' }]}>
+                    <Text style={[styles.statusText, { color: item.isActive ? colors.success : colors.subText }]}>
                         {item.isActive ? 'Active' : 'Inactive'}
                     </Text>
                 </TouchableOpacity>
@@ -78,10 +82,11 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
             {/* Search and Filter */}
             <View style={styles.searchContainer}>
                 <View style={styles.searchBox}>
-                    <Ionicons name="search" size={20} color="#6b7280" />
+                    <Ionicons name="search" size={20} color={colors.subText} />
                     <TextInput
                         style={styles.searchInput}
                         placeholder="Search by code or name..."
+                        placeholderTextColor={colors.subText}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                     />
@@ -89,47 +94,49 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
             </View>
 
             {/* Type Filter */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
-                <TouchableOpacity
-                    style={[styles.filterChip, filterType === null && styles.filterChipActive]}
-                    onPress={() => setFilterType(null)}
-                >
-                    <Text style={[styles.filterChipText, filterType === null && styles.filterChipTextActive]}>
-                        All
-                    </Text>
-                </TouchableOpacity>
-                {ACCOUNT_TYPES.map((accountType) => {
-                    const isActive = filterType === accountType;
-                    const activeColor = getTypeColor(accountType);
-                    const pluralName = {
-                        'Asset': 'Assets',
-                        'Liability': 'Liabilities',
-                        'Equity': 'Equity',
-                        'Income': 'Income',
-                        'Expense': 'Expenses'
-                    }[accountType] || accountType;
+            <View style={{ flexGrow: 0 }}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterContainer}>
+                    <TouchableOpacity
+                        style={[styles.filterChip, filterType === null && styles.filterChipActive]}
+                        onPress={() => setFilterType(null)}
+                    >
+                        <Text style={[styles.filterChipText, filterType === null && styles.filterChipTextActive]}>
+                            All
+                        </Text>
+                    </TouchableOpacity>
+                    {ACCOUNT_TYPES.map((accountType) => {
+                        const isActive = filterType === accountType;
+                        const activeColor = getTypeColor(accountType);
+                        const pluralName = {
+                            'Asset': 'Assets',
+                            'Liability': 'Liabilities',
+                            'Equity': 'Equity',
+                            'Income': 'Income',
+                            'Expense': 'Expenses'
+                        }[accountType] || accountType;
 
-                    return (
-                        <TouchableOpacity
-                            key={accountType}
-                            style={[
-                                styles.filterChip,
-                                isActive && { backgroundColor: activeColor }
-                            ]}
-                            onPress={() => setFilterType(accountType)}
-                        >
-                            <Text
+                        return (
+                            <TouchableOpacity
+                                key={accountType}
                                 style={[
-                                    styles.filterChipText,
-                                    isActive && styles.filterChipTextActive,
+                                    styles.filterChip,
+                                    isActive && { backgroundColor: activeColor }
                                 ]}
+                                onPress={() => setFilterType(accountType)}
                             >
-                                {pluralName}
-                            </Text>
-                        </TouchableOpacity>
-                    );
-                })}
-            </ScrollView>
+                                <Text
+                                    style={[
+                                        styles.filterChipText,
+                                        isActive && styles.filterChipTextActive,
+                                    ]}
+                                >
+                                    {pluralName}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </ScrollView>
+            </View>
 
             {/* Accounts List */}
             <View style={{ flex: 1 }}>
@@ -138,11 +145,10 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
                     renderItem={renderAccount}
                     keyExtractor={(item) => item._id.toString()}
                     contentContainerStyle={styles.listContainer}
-                    // @ts-ignore
                     estimatedItemSize={100}
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
-                            <Ionicons name="folder-open-outline" size={64} color="#d1d5db" />
+                            <Ionicons name="folder-open-outline" size={64} color={colors.border} />
                             <Text style={styles.emptyText}>No accounts found</Text>
                         </View>
                     }
@@ -158,6 +164,9 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
 }
 
 function AccountModal({ visible, onClose, onSave, editingAccount, code, setCode, name, setName, type, setType, subtype, setSubtype }) {
+    const { colors } = useTheme();
+    const styles = useMemo(() => getStyles(colors), [colors]);
+
     return (
         <Modal visible={visible} animationType="slide" transparent>
             <View style={styles.modalOverlay}>
@@ -167,7 +176,7 @@ function AccountModal({ visible, onClose, onSave, editingAccount, code, setCode,
                             {editingAccount ? 'Edit Account' : 'Add Account'}
                         </Text>
                         <TouchableOpacity onPress={onClose}>
-                            <Ionicons name="close" size={28} color="#6b7280" />
+                            <Ionicons name="close" size={28} color={colors.subText} />
                         </TouchableOpacity>
                     </View>
 
@@ -178,6 +187,7 @@ function AccountModal({ visible, onClose, onSave, editingAccount, code, setCode,
                             value={code}
                             onChangeText={setCode}
                             placeholder="e.g., 1101"
+                            placeholderTextColor={colors.subText}
                             editable={!editingAccount}
                         />
 
@@ -187,6 +197,7 @@ function AccountModal({ visible, onClose, onSave, editingAccount, code, setCode,
                             value={name}
                             onChangeText={setName}
                             placeholder="e.g., Cash on Hand"
+                            placeholderTextColor={colors.subText}
                         />
 
                         <Text style={styles.label}>Account Type *</Text>
@@ -219,6 +230,7 @@ function AccountModal({ visible, onClose, onSave, editingAccount, code, setCode,
                             value={subtype}
                             onChangeText={setSubtype}
                             placeholder="e.g., Current Asset"
+                            placeholderTextColor={colors.subText}
                         />
                     </ScrollView>
 
@@ -283,21 +295,21 @@ export default function AccountsScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f3f4f6',
+        backgroundColor: colors.background,
     },
     searchContainer: {
         padding: 16,
-        backgroundColor: '#fff',
+        backgroundColor: colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: '#e5e7eb',
+        borderBottomColor: colors.border,
     },
     searchBox: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#f3f4f6',
+        backgroundColor: colors.background,
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 8,
@@ -306,29 +318,29 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 8,
         fontSize: 16,
-        color: '#1f2937',
+        color: colors.text,
     },
     filterContainer: {
-        backgroundColor: '#fff',
+        backgroundColor: colors.card,
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#e5e7eb',
+        borderBottomColor: colors.border,
         flexGrow: 0,
     },
     filterChip: {
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 16,
-        backgroundColor: '#f3f4f6',
+        backgroundColor: colors.background,
         marginRight: 8,
     },
     filterChipActive: {
-        backgroundColor: '#2563eb',
+        backgroundColor: colors.primary,
     },
     filterChipText: {
         fontSize: 13,
-        color: '#6b7280',
+        color: colors.subText,
     },
     filterChipTextActive: {
         color: '#fff',
@@ -338,7 +350,7 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     accountCard: {
-        backgroundColor: '#fff',
+        backgroundColor: colors.card,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
@@ -361,16 +373,16 @@ const styles = StyleSheet.create({
     },
     accountCode: {
         fontSize: 12,
-        color: '#6b7280',
+        color: colors.subText,
         marginBottom: 4,
     },
     accountName: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#1f2937',
+        color: colors.text,
     },
     inactiveText: {
-        color: '#9ca3af',
+        color: colors.subText,
     },
     accountRight: {
         alignItems: 'flex-end',
@@ -392,7 +404,7 @@ const styles = StyleSheet.create({
     },
     balance: {
         fontSize: 14,
-        color: '#6b7280',
+        color: colors.subText,
     },
     statusButton: {
         flexDirection: 'row',
@@ -410,7 +422,7 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 16,
-        color: '#9ca3af',
+        color: colors.subText,
         marginTop: 16,
     },
     fab: {
@@ -420,7 +432,7 @@ const styles = StyleSheet.create({
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: '#2563eb',
+        backgroundColor: colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#000',
@@ -435,7 +447,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#fff',
+        backgroundColor: colors.card,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         maxHeight: '90%',
@@ -446,12 +458,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
         borderBottomWidth: 1,
-        borderBottomColor: '#e5e7eb',
+        borderBottomColor: colors.border,
     },
     modalTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#1f2937',
+        color: colors.text,
     },
     modalBody: {
         padding: 20,
@@ -459,17 +471,18 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#374151',
+        color: colors.text,
         marginBottom: 8,
         marginTop: 16,
     },
     input: {
         borderWidth: 1,
-        borderColor: '#d1d5db',
+        borderColor: colors.border,
         borderRadius: 8,
         padding: 12,
         fontSize: 16,
-        color: '#1f2937',
+        color: colors.text,
+        backgroundColor: colors.inputBackground,
     },
     typeSelector: {
         flexDirection: 'row',
@@ -481,7 +494,7 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 8,
         borderWidth: 2,
-        borderColor: '#d1d5db',
+        borderColor: colors.border,
         marginRight: 8,
         marginBottom: 8,
     },
@@ -490,14 +503,14 @@ const styles = StyleSheet.create({
     },
     typeOptionText: {
         fontSize: 14,
-        color: '#6b7280',
+        color: colors.subText,
         fontWeight: '600',
     },
     modalFooter: {
         flexDirection: 'row',
         padding: 20,
         borderTopWidth: 1,
-        borderTopColor: '#e5e7eb',
+        borderTopColor: colors.border,
     },
     button: {
         flex: 1,
@@ -506,16 +519,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     buttonSecondary: {
-        backgroundColor: '#f3f4f6',
+        backgroundColor: colors.background,
         marginRight: 8,
     },
     buttonSecondaryText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#6b7280',
+        color: colors.subText,
     },
     buttonPrimary: {
-        backgroundColor: '#2563eb',
+        backgroundColor: colors.primary,
         marginLeft: 8,
     },
     buttonPrimaryText: {

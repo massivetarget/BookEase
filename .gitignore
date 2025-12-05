@@ -57,5 +57,3 @@ dist-electron/
 android/app/build
 .env
 .env.example
-
-google-services.json

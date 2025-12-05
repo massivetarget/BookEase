@@ -1,28 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Appearance, useColorScheme, Modal, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BackupService } from '@/core/services/BackupService';
 import { User } from '@react-native-google-signin/google-signin';
+import { useTheme } from '@/core/contexts/ThemeContext';
 
 export default function SettingsScreen() {
-    const colorScheme = useColorScheme();
+    const { themeMode, setThemeMode, colors, isDark } = useTheme();
     const [themeModalVisible, setThemeModalVisible] = useState(false);
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const isDark = colorScheme === 'dark';
-    const themeColors = {
-        background: isDark ? '#111827' : '#f3f4f6',
-        card: isDark ? '#1f2937' : '#fff',
-        text: isDark ? '#f9fafb' : '#1f2937',
-        subText: isDark ? '#9ca3af' : '#6b7280',
-        border: isDark ? '#374151' : '#f3f4f6',
-        header: isDark ? '#1e40af' : '#2563eb',
-        infoBox: isDark ? 'rgba(37, 99, 235, 0.2)' : '#dbeafe',
-        infoText: isDark ? '#93c5fd' : '#1e40af',
-    };
-
-    const styles = getStyles(themeColors);
+    const styles = getStyles(colors);
 
     useEffect(() => {
         checkUser();
@@ -33,8 +22,8 @@ export default function SettingsScreen() {
         setUser(currentUser);
     };
 
-    const handleThemeChange = (mode: 'light' | 'dark' | null) => {
-        Appearance.setColorScheme(mode);
+    const handleThemeChange = (mode: 'light' | 'dark' | 'system') => {
+        setThemeMode(mode);
         setThemeModalVisible(false);
     };
 
@@ -169,14 +158,14 @@ export default function SettingsScreen() {
                 <Text style={styles.sectionTitle}>Appearance</Text>
                 <TouchableOpacity style={styles.settingItem} onPress={() => setThemeModalVisible(true)}>
                     <View style={styles.settingLeft}>
-                        <Ionicons name="moon-outline" size={24} color={themeColors.subText} />
+                        <Ionicons name="moon-outline" size={24} color={colors.subText} />
                         <Text style={styles.settingText}>Theme</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={styles.settingValue}>
-                            {colorScheme === 'dark' ? 'Dark' : 'Light'}
+                            {themeMode.charAt(0).toUpperCase() + themeMode.slice(1)}
                         </Text>
-                        <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />
+                        <Ionicons name="chevron-forward" size={20} color={colors.subText} />
                     </View>
                 </TouchableOpacity>
             </View>
@@ -187,16 +176,16 @@ export default function SettingsScreen() {
                 {!user ? (
                     <TouchableOpacity style={styles.settingItem} onPress={handleGoogleSignIn} disabled={isLoading}>
                         <View style={styles.settingLeft}>
-                            <Ionicons name="logo-google" size={24} color={themeColors.subText} />
+                            <Ionicons name="logo-google" size={24} color={colors.subText} />
                             <Text style={styles.settingText}>Sign in with Google</Text>
                         </View>
-                        {isLoading ? <ActivityIndicator size="small" color={themeColors.subText} /> : <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />}
+                        {isLoading ? <ActivityIndicator size="small" color={colors.subText} /> : <Ionicons name="chevron-forward" size={20} color={colors.subText} />}
                     </TouchableOpacity>
                 ) : (
                     <>
                         <View style={styles.settingItem}>
                             <View style={styles.settingLeft}>
-                                <Ionicons name="person-circle-outline" size={24} color={themeColors.subText} />
+                                <Ionicons name="person-circle-outline" size={24} color={colors.subText} />
                                 <Text style={styles.settingText}>{user.user.email}</Text>
                             </View>
                             <TouchableOpacity onPress={handleGoogleSignOut}>
@@ -206,34 +195,34 @@ export default function SettingsScreen() {
 
                         <TouchableOpacity style={styles.settingItem} onPress={handleBackup} disabled={isLoading}>
                             <View style={styles.settingLeft}>
-                                <Ionicons name="cloud-upload-outline" size={24} color={themeColors.subText} />
+                                <Ionicons name="cloud-upload-outline" size={24} color={colors.subText} />
                                 <Text style={styles.settingText}>Backup Now</Text>
                             </View>
-                            {isLoading ? <ActivityIndicator size="small" color={themeColors.subText} /> : <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />}
+                            {isLoading ? <ActivityIndicator size="small" color={colors.subText} /> : <Ionicons name="chevron-forward" size={20} color={colors.subText} />}
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.settingItem} onPress={handleRestore} disabled={isLoading}>
                             <View style={styles.settingLeft}>
-                                <Ionicons name="cloud-download-outline" size={24} color={themeColors.subText} />
+                                <Ionicons name="cloud-download-outline" size={24} color={colors.subText} />
                                 <Text style={styles.settingText}>Restore from Backup</Text>
                             </View>
-                            {isLoading ? <ActivityIndicator size="small" color={themeColors.subText} /> : <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />}
+                            {isLoading ? <ActivityIndicator size="small" color={colors.subText} /> : <Ionicons name="chevron-forward" size={20} color={colors.subText} />}
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.settingItem} onPress={handleExportToSheets} disabled={isLoading}>
                             <View style={styles.settingLeft}>
-                                <Ionicons name="grid-outline" size={24} color={themeColors.subText} />
+                                <Ionicons name="grid-outline" size={24} color={colors.subText} />
                                 <Text style={styles.settingText}>Export to Google Sheets</Text>
                             </View>
-                            {isLoading ? <ActivityIndicator size="small" color={themeColors.subText} /> : <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />}
+                            {isLoading ? <ActivityIndicator size="small" color={colors.subText} /> : <Ionicons name="chevron-forward" size={20} color={colors.subText} />}
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.settingItem} onPress={handleImportFromSheets} disabled={isLoading}>
                             <View style={styles.settingLeft}>
-                                <Ionicons name="document-text-outline" size={24} color={themeColors.subText} />
+                                <Ionicons name="document-text-outline" size={24} color={colors.subText} />
                                 <Text style={styles.settingText}>Import from Google Sheets</Text>
                             </View>
-                            {isLoading ? <ActivityIndicator size="small" color={themeColors.subText} /> : <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />}
+                            {isLoading ? <ActivityIndicator size="small" color={colors.subText} /> : <Ionicons name="chevron-forward" size={20} color={colors.subText} />}
                         </TouchableOpacity>
                     </>
                 )}
@@ -246,14 +235,14 @@ export default function SettingsScreen() {
                         <Ionicons name="trash-outline" size={24} color="#dc2626" />
                         <Text style={[styles.settingText, { color: '#dc2626' }]}>Reset All Data</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />
+                    <Ionicons name="chevron-forward" size={20} color={colors.subText} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.settingItem}>
                     <View style={styles.settingLeft}>
-                        <Ionicons name="download-outline" size={24} color={themeColors.subText} />
+                        <Ionicons name="download-outline" size={24} color={colors.subText} />
                         <Text style={styles.settingText}>Export Data (JSON)</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />
+                    <Ionicons name="chevron-forward" size={20} color={colors.subText} />
                 </TouchableOpacity>
             </View>
 
@@ -261,17 +250,17 @@ export default function SettingsScreen() {
                 <Text style={styles.sectionTitle}>Sync</Text>
                 <TouchableOpacity style={styles.settingItem}>
                     <View style={styles.settingLeft}>
-                        <Ionicons name="phone-portrait-outline" size={24} color={themeColors.subText} />
+                        <Ionicons name="phone-portrait-outline" size={24} color={colors.subText} />
                         <Text style={styles.settingText}>Pair Device (P2P)</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />
+                    <Ionicons name="chevron-forward" size={20} color={colors.subText} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.settingItem}>
                     <View style={styles.settingLeft}>
-                        <Ionicons name="qr-code-outline" size={24} color={themeColors.subText} />
+                        <Ionicons name="qr-code-outline" size={24} color={colors.subText} />
                         <Text style={styles.settingText}>Show QR Code</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />
+                    <Ionicons name="chevron-forward" size={20} color={colors.subText} />
                 </TouchableOpacity>
             </View>
 
@@ -279,17 +268,17 @@ export default function SettingsScreen() {
                 <Text style={styles.sectionTitle}>Security</Text>
                 <TouchableOpacity style={styles.settingItem}>
                     <View style={styles.settingLeft}>
-                        <Ionicons name="lock-closed-outline" size={24} color={themeColors.subText} />
+                        <Ionicons name="lock-closed-outline" size={24} color={colors.subText} />
                         <Text style={styles.settingText}>Change PIN</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />
+                    <Ionicons name="chevron-forward" size={20} color={colors.subText} />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.settingItem}>
                     <View style={styles.settingLeft}>
-                        <Ionicons name="finger-print-outline" size={24} color={themeColors.subText} />
+                        <Ionicons name="finger-print-outline" size={24} color={colors.subText} />
                         <Text style={styles.settingText}>Biometric Authentication</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color={themeColors.subText} />
+                    <Ionicons name="chevron-forward" size={20} color={colors.subText} />
                 </TouchableOpacity>
             </View>
 
@@ -317,14 +306,15 @@ export default function SettingsScreen() {
                         <Text style={styles.modalTitle}>Select Theme</Text>
                         <TouchableOpacity style={styles.modalOption} onPress={() => handleThemeChange('light')}>
                             <Text style={styles.modalOptionText}>Light</Text>
-                            {colorScheme === 'light' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
+                            {themeMode === 'light' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.modalOption} onPress={() => handleThemeChange('dark')}>
                             <Text style={styles.modalOptionText}>Dark</Text>
-                            {colorScheme === 'dark' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
+                            {themeMode === 'dark' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.modalOption} onPress={() => handleThemeChange(null)}>
+                        <TouchableOpacity style={styles.modalOption} onPress={() => handleThemeChange('system')}>
                             <Text style={styles.modalOptionText}>System Default</Text>
+                            {themeMode === 'system' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>

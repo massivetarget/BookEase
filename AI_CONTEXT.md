@@ -40,25 +40,31 @@ The app is strictly layered to allow swapping data sources.
 2.  **Build Configuration**:
     *   Desktop build excludes `node_modules` to avoid `fsevents` errors.
     *   Code signing disabled for local Desktop testing.
+    *   **Google Auth**: `google-services.json` Project Number MUST match `.env` Client ID prefix.
+        *   Debug Keystore SHA-1 must be added to Firebase Console manually. (Found in `android/app/debug.keystore`).
 
 ## 🚦 Current State (as of Dec 5, 2025)
-*   **Active Branch**: `feature/tailwind-ui` (Needs Verification) / `main`
-*   **Version**: v1.1.0
+*   **Active Branch**: `main`
+*   **Version**: v1.2.0
 *   **Build Status**:
     *   ✅ **Desktop (Windows)**: Functional (Mock Data).
     *   ✅ **Web**: Functional (Mock Data).
-    *   ✅ **Android**: **Functional** (JDK 17 Configured).
+    *   ✅ **Android**: **Verified Functional**.
+        *   Resolved bundling issues (excluded `electron/main.js`).
+        *   Configured JDK 17 & Google Services.
     *   ⚠️ **iOS**: Untested.
 
-## � User Preferences & Workflow
+## 👥 User Preferences & Workflow
 *   **Git**: Feature Branch Workflow. Never commit directly to `main`.
 *   **files**: PascalCase for Components, camelCase for utils.
 *   **Documentation**: Keep `AI_CONTEXT.md` updated as the primary memory.
 
 ## 🔜 Backlog & Roadmap
-### Phase 1: Fixes (Current)
-1.  **Fix Android Build**: Install JDK 17, Setup `ANDROID_HOME`, Create `local.properties`.
-2.  **Google Drive Backup**: Wiring up `BackupService`.
+### Phase 1: Fixes & Foundation (Completed)
+1.  ✅ **Fix Android Build**: Bundling & Environment resolved.
+2.  ✅ **Google Drive Backup**: Implemented via secure `expo-file-system`.
+3.  ✅ **Simple Mode**: Simplified interaction for Journal Entries.
+4.  ✅ **UI Polish**: Accounts tab buttons fixed.
 
 ### Phase 2: Features
 1.  **Reports**: Balance Sheet, P&L, PDF Export.

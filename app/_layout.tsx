@@ -1,11 +1,11 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { ThemeProvider } from '@/core/contexts/ThemeContext';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
-import { Platform, View, Text, useColorScheme } from 'react-native';
+import { Platform, View, Text } from 'react-native';
 
 import { ServiceProvider, useServices } from '@/core/services/ServiceContext';
 import { WebAccountRepository } from '@/core/repositories/web/WebAccountRepository';
@@ -18,8 +18,6 @@ import { getDBConnection, createTables, seedDatabase } from '@/core/database/Dat
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-    const colorScheme = useColorScheme();
-
     // Fonts are missing, skipping loading for now to unblock build
     const loaded = true;
 
@@ -36,7 +34,7 @@ export default function RootLayout() {
     return (
         <ServiceProvider>
             <ServiceInitializer>
-                <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <ThemeProvider>
                     <Stack>
                         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                         <Stack.Screen name="+not-found" />
