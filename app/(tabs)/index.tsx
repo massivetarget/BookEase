@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useDashboardViewModel } from '@/core/viewmodels/useDashboardViewModel';
+import { useTheme } from '@/core/contexts/ThemeContext';
 
 function DashboardContent() {
     const {
@@ -11,6 +12,10 @@ function DashboardContent() {
         totalEquity,
         postedEntriesCount
     } = useDashboardViewModel();
+    const { colors } = useTheme();
+    const styles = useMemo(() => getStyles(colors), [colors]);
+
+    const netWorth = totalAssets - totalLiabilities;
 
     return (
         <ScrollView style={styles.container}>
@@ -41,8 +46,8 @@ function DashboardContent() {
                 </View>
                 <View style={[styles.row, styles.divider]}>
                     <Text style={styles.labelBold}>Net Worth:</Text>
-                    <Text style={[styles.valueBold, totalAssets - totalLiabilities >= 0 ? styles.positive : styles.negative]}>
-                        ${(totalAssets - totalLiabilities).toFixed(2)}
+                    <Text style={[styles.valueBold, netWorth >= 0 ? styles.positive : styles.negative]}>
+                        ${netWorth.toFixed(2)}
                     </Text>
                 </View>
             </View>
@@ -82,28 +87,28 @@ export default function DashboardScreen() {
     return <DashboardContent />;
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f3f4f6',
+        backgroundColor: colors.background,
     },
     header: {
-        backgroundColor: '#2563eb',
+        backgroundColor: colors.primary,
         padding: 20,
         paddingTop: 40,
     },
     title: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#fff',
+        color: '#ffffff', // Always white on primary
         marginBottom: 4,
     },
     subtitle: {
         fontSize: 14,
-        color: '#dbeafe',
+        color: '#e0e7ff', // Lighter shade for subtitle on primary
     },
     card: {
-        backgroundColor: '#fff',
+        backgroundColor: colors.card,
         margin: 16,
         padding: 16,
         borderRadius: 12,
@@ -116,7 +121,7 @@ const styles = StyleSheet.create({
     cardTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#1f2937',
+        color: colors.text,
         marginBottom: 12,
     },
     row: {
@@ -126,44 +131,45 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 16,
-        color: '#6b7280',
+        color: colors.subText,
     },
     labelBold: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#1f2937',
+        color: colors.text,
     },
     value: {
         fontSize: 16,
-        color: '#1f2937',
+        color: colors.text,
     },
     valueBold: {
         fontSize: 16,
         fontWeight: 'bold',
+        color: colors.text,
     },
     positive: {
-        color: '#059669',
+        color: colors.success,
     },
     negative: {
-        color: '#dc2626',
+        color: colors.error,
     },
     divider: {
         borderTopWidth: 2,
-        borderTopColor: '#e5e7eb',
+        borderTopColor: colors.border,
         marginTop: 8,
         paddingTop: 12,
     },
     infoBox: {
-        backgroundColor: '#dbeafe',
+        backgroundColor: colors.infoBox,
         margin: 16,
         padding: 16,
         borderRadius: 8,
         borderLeftWidth: 4,
-        borderLeftColor: '#2563eb',
+        borderLeftColor: colors.primary,
     },
     infoText: {
         fontSize: 14,
-        color: '#1e40af',
+        color: colors.infoText,
         lineHeight: 20,
     },
 });

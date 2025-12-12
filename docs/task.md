@@ -19,3 +19,14 @@
     - [x] Run `npx expo-doctor` to verify (**Verified via Build**) <!-- id: 5 -->
 - [x] **Build & Run** <!-- id: 17 -->
     - [x] Run `npx expo run:android` (**Success**) <!-- id: 18 -->
+- [x] **Theme Refactoring & Journal Fixes** <!-- id: 19 -->
+    - [x] Implement `useTheme` in `journal.tsx`, `accounts.tsx`, `index.tsx`, `reports.tsx` <!-- id: 20 -->
+    - [x] Fix "Description is required" error in Simple Mode <!-- id: 21 -->
+    - [x] Fix Account Picker (FlashList visibility) <!-- id: 22 -->
+    - [x] Resolve all TypeScript errors (FlashList, Ionicons) <!-- id: 23 -->
+
+# Next Steps (Tomorrow)
+- [ ] **Google Drive Backup**: Verify and debug backup/restore functionality.
+- [ ] **Reports Implementation**: Build out the actual charts and data for Reports screen.
+- [ ] **Unit Testing**: Add tests for ViewModels and Repositories.
+- [ ] **Cleanup**: Archive `INSTRUCTIONS.md` and move `sync.config.js` to `legacy_sync_code/`.

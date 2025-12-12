@@ -23,14 +23,14 @@ const ACCOUNT_TYPES: Array<'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expens
     'Expense',
 ];
 
-const getTypeColor = (accountType: string) => {
+const getTypeColor = (accountType: string, colors: any) => {
     switch (accountType) {
-        case 'Asset': return '#059669';
-        case 'Liability': return '#dc2626';
-        case 'Equity': return '#7c3aed';
-        case 'Income': return '#2563eb';
-        case 'Expense': return '#ea580c';
-        default: return '#6b7280';
+        case 'Asset': return colors.success;
+        case 'Liability': return colors.error;
+        case 'Equity': return colors.primary;
+        case 'Income': return colors.success;
+        case 'Expense': return colors.error;
+        default: return colors.subText;
     }
 };
 
@@ -38,7 +38,7 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
     const { colors } = useTheme();
     const styles = useMemo(() => getStyles(colors), [colors]);
 
-    const renderAccount = ({ item }) => (
+    const renderAccount = ({ item }: { item: Account }) => (
         <TouchableOpacity
             style={[styles.accountCard, !item.isActive && styles.inactiveCard]}
             onPress={() => onEdit(item)}
@@ -51,7 +51,7 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
                     </Text>
                 </View>
                 <View style={styles.accountRight}>
-                    <View style={[styles.typeBadge, { backgroundColor: getTypeColor(item.type) }]}>
+                    <View style={[styles.typeBadge, { backgroundColor: getTypeColor(item.type, colors) }]}>
                         <Text style={styles.typeBadgeText}>{item.type}</Text>
                     </View>
                 </View>
@@ -106,7 +106,7 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
                     </TouchableOpacity>
                     {ACCOUNT_TYPES.map((accountType) => {
                         const isActive = filterType === accountType;
-                        const activeColor = getTypeColor(accountType);
+                        const activeColor = getTypeColor(accountType, colors);
                         const pluralName = {
                             'Asset': 'Assets',
                             'Liability': 'Liabilities',
@@ -145,7 +145,6 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
                     renderItem={renderAccount}
                     keyExtractor={(item) => item._id.toString()}
                     contentContainerStyle={styles.listContainer}
-                    estimatedItemSize={100}
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
                             <Ionicons name="folder-open-outline" size={64} color={colors.border} />
@@ -157,7 +156,7 @@ function AccountsList({ accounts, onEdit, onToggleStatus, searchQuery, setSearch
 
             {/* Add Button */}
             <TouchableOpacity style={styles.fab} onPress={openAddModal}>
-                <Ionicons name="add" size={28} color="#fff" />
+                <Ionicons name="add" size={28} color={colors.subText} />
             </TouchableOpacity>
         </View>
     );
@@ -208,14 +207,14 @@ function AccountModal({ visible, onClose, onSave, editingAccount, code, setCode,
                                     style={[
                                         styles.typeOption,
                                         type === accountType && styles.typeOptionActive,
-                                        { borderColor: getTypeColor(accountType) },
+                                        { borderColor: getTypeColor(accountType, colors) },
                                     ]}
                                     onPress={() => setType(accountType)}
                                 >
                                     <Text
                                         style={[
                                             styles.typeOptionText,
-                                            type === accountType && { color: getTypeColor(accountType) },
+                                            type === accountType && { color: getTypeColor(accountType, colors) },
                                         ]}
                                     >
                                         {accountType}

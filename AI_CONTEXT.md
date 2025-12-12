@@ -18,10 +18,10 @@
 | **Mobile Runtime** | Expo Go / Dev Client | SDK 54 | **Must use Custom Dev Client** (Native Modules) |
 | **Desktop Runtime** | Electron | 39.2+ | Wraps the Web build |
 | **Storage (Native)**| **expo-sqlite** | ~16.0.9 | **Replaced Realm** |
-| **Storage (Web)** | LocalStorage | N/A | **Persistent** (Simulated Async) |
+*   **Storage (Web)** | LocalStorage | N/A | **Persistent JSON** (Replaced Mock) |
 | **Language** | TypeScript | 5.x | Strict Mode |
 | **Navigation** | expo-router | 6.x | File-based routing |
-| **Styling** | NativeWind / CSS | Mixed | NativeWind disabled due to Desktop build issues |
+| **Styling** | NativeWind / CSS | Mixed | NativeWind disabled; **Custom ThemeContext** implemented |
 
 ## 🏗️ Architecture & Data
 
@@ -31,27 +31,27 @@ The app is strictly layered to allow swapping data sources.
 2.  **Service Layer (`core/services/`)**: Business logic, injected with repositories.
 3.  **Repository Layer (`core/repositories/`)**:
     *   **Interfaces**: `IAccountRepository`, `IJournalRepository`.
-    *   **Implementation**: `SQLite*Repository` (Native) and `Mock*Repository` (Web/Desktop).
+    *   **Implementation**: `SQLite*Repository` (Native) and `Web*Repository` (Web/Desktop - Persistent).
 
 ### Critical Constraints
 1.  **Database Duality**:
     *   **Mobile**: Uses `expo-sqlite`. **Cannot run in standard Expo Go**.
-    *   **Web/Desktop**: Currently uses **In-Memory Mock Data** (Non-persistent on reload).
+    *   **Web/Desktop**: Uses **LocalStorage** (Persistent).
 2.  **Build Configuration**:
     *   Desktop build excludes `node_modules` to avoid `fsevents` errors.
     *   Code signing disabled for local Desktop testing.
     *   **Google Auth**: `google-services.json` Project Number MUST match `.env` Client ID prefix.
         *   Debug Keystore SHA-1 must be added to Firebase Console manually. (Found in `android/app/debug.keystore`).
 
-## 🚦 Current State (as of Dec 5, 2025)
+## 🚦 Current State (as of Dec 6, 2025)
 *   **Active Branch**: `main`
-*   **Version**: v1.2.0
+*   **Version**: v1.2.1
 *   **Build Status**:
-    *   ✅ **Desktop (Windows)**: Functional (Mock Data).
-    *   ✅ **Web**: Functional (Mock Data).
+    *   ✅ **Desktop (Windows)**: Functional (Persistent Data).
+    *   ✅ **Web**: Functional (Persistent Data).
     *   ✅ **Android**: **Verified Functional**.
-        *   Resolved bundling issues (excluded `electron/main.js`).
-        *   Configured JDK 17 & Google Services.
+        *   **UI/UX**: Dynamic Theming (Light/Dark) fully implemented.
+        *   **Journal**: Simple Mode validation fixed; Account Picker fixed.
     *   ⚠️ **iOS**: Untested.
 
 ## 👥 User Preferences & Workflow
@@ -64,7 +64,8 @@ The app is strictly layered to allow swapping data sources.
 1.  ✅ **Fix Android Build**: Bundling & Environment resolved.
 2.  ✅ **Google Drive Backup**: Implemented via secure `expo-file-system`.
 3.  ✅ **Simple Mode**: Simplified interaction for Journal Entries.
-4.  ✅ **UI Polish**: Accounts tab buttons fixed.
+4.  ✅ **UI Polish**: Accounts tab buttons fixed, Theming System implemented.
+5.  ✅ **Data Persistence**: LocalStorage for Web/Desktop implemented.
 
 ### Phase 2: Features
 1.  **Reports**: Balance Sheet, P&L, PDF Export.

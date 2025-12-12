@@ -11,6 +11,7 @@ import {
 type ThemeMode = 'light' | 'dark' | 'system';
 
 interface Colors {
+    error: string;
     background: string;
     card: string;
     text: string;
@@ -44,6 +45,7 @@ const LightColors: Colors = {
     border: '#e5e7eb',
     primary: '#2563eb',
     danger: '#dc2626',
+    error: '#dc2626', // alias for danger
     success: '#059669',
     warning: '#ea580c',
     infoBox: '#dbeafe',
@@ -60,6 +62,7 @@ const DarkColors: Colors = {
     border: '#374151',
     primary: '#3b82f6',
     danger: '#ef4444',
+    error: '#ef4444', // alias for danger
     success: '#10b981',
     warning: '#f97316',
     infoBox: 'rgba(37, 99, 235, 0.2)',
